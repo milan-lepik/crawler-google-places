@@ -5,8 +5,6 @@ This Google Maps crawler will enable you to get more and faster data from Google
 
 To understand how to configure the scraper and get ideas on how you can use the data you can extract, [watch a short video tutorial](https://www.youtube.com/watch?v=J43AX9wu-NI) on YouTube or follow our step-by-step guide on [how to scrape Google Maps](https://blog.apify.com/step-by-step-guide-to-scraping-google-maps/).
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/J43AX9wu-NI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
 Our unofficial Google Maps API enables you to extract all of the following data from Google Maps:
 
 - Title, subtitle, category, place ID, and URL
