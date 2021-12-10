@@ -1,20 +1,11 @@
-# Google Maps Scraper
 
-<!-- toc start -->
-- [Features](#features)
-- [Advantages over Google Maps API](#advantages-over-google-maps-api)
-- [Input configuration](#input-configuration)
-- [Results](#results)
-- [Usage on Apify platform and locally](#usage-on-apify-platform-and-locally)
-- [How the search works](#how-the-search-works)
-- [Using country, state, county, city and postal code parameters](#using-country-state-county-city-and-postal-code-parameters)
-- [Personal data](#personal-data)
-- [Changelog](#changelog)
-- [Contributions](#contributions)
-<!-- toc end -->
 
 ## Features
-This Google Maps crawler will enable you to get more and faster data from Google Places than the official [Google Maps Places API](https://developers.google.com/places/web-service/search). Read our step-by-step guide on [how to scrape Google Maps](https://blog.apify.com/step-by-step-guide-to-scraping-google-maps/) to understand how to configure the scraper and get ideas on how you can use the data you can extract.
+This Google Maps crawler will enable you to get more and faster data from Google Places than the official [Google Maps Places API](https://developers.google.com/places/web-service/search). 
+
+To understand how to configure the scraper and get ideas on how you can use the data you can extract, [watch a short video tutorial](https://www.youtube.com/watch?v=J43AX9wu-NI) on YouTube or follow our step-by-step guide on [how to scrape Google Maps](https://blog.apify.com/step-by-step-guide-to-scraping-google-maps/).
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/J43AX9wu-NI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 Our unofficial Google Maps API enables you to extract all of the following data from Google Maps:
 
