@@ -243,16 +243,16 @@
             "description": "Define how reviews should be sorted.",
             "type": "string",
             "editor": "select",
-            "default": "mostRelevant",
+            "default": "newest",
             "enum": [
-                "mostRelevant",
                 "newest",
+                "mostRelevant",
                 "highestRanking",
                 "lowestRanking"
             ],
             "enumTitles": [
-                "Most relevant",
                 "Newest",
+                "Most relevant",
                 "Highest ranking",
                 "Lowest ranking"
             ]
