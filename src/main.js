@@ -42,8 +42,9 @@ Apify.main(async () => {
         includeHistogram = false, includeOpeningHours = false, includePeopleAlsoSearch = false,
         maxReviews = 0, maxImages = 1, exportPlaceUrls = false, additionalInfo = false,
         maxCrawledPlaces = 99999999, maxCrawledPlacesPerSearch = maxCrawledPlaces,
-        maxAutomaticZoomOut, reviewsSort = 'mostRelevant', reviewsTranslation = 'originalAndTranslated',
-
+        maxAutomaticZoomOut, reviewsTranslation = 'originalAndTranslated',
+        // For some rare places, Google doesn't show all reviews unles in newest sorting
+        reviewsSort = 'newest',
         // Fields used by Heyrick only, not present in the schema (too narrow use-case for now)
         cachePlaces = false, useCachedPlaces = false, cacheKey,
 
