@@ -1,3 +1,7 @@
+## 2021-12-14
+*Breaking change*
+- `reviewsSort` is now set to `newest` by default. This is because some places don't yield all reviews on other sortings (we are not sure if this is a bug or silent block on Google's side)
+
 ## 2021-11-15
 *Fixes*
 - `exportPlaceUrls` now properly dedupes the URLs
