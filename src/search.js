@@ -75,7 +75,7 @@ exports.prepareSearchUrls = async ({ lat, lng, userOverridingZoom, country, stat
         log.info(`Created ${startUrlSearches.length} search page URLs for extraction to ensure maximum results is captured.`);
     } else if (lat || lng) {
         if (!lat || !lng) {
-            throw 'You have to defined both lat and lng!';
+            throw 'You have to define both lat and lng!';
         }
         startUrlSearches.push(`https://www.google.com/maps/@${lat},${lng},${zoom}z/search`);
     } else {
