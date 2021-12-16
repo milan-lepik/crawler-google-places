@@ -1,6 +1,6 @@
 {
     "title": "Google Maps Scraper",
-    "description": "Provide either a list of search keywords or search/place URLs.",
+    "description": "Provide either a list of search keywords or search/place URLs. It is better to set location in the Geolocation settings below rather than add into the search terms. You will get more results and they will be accurate.",
     "type": "object",
     "schemaVersion": 1,
     "properties": {
