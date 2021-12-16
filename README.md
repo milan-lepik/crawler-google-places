@@ -48,25 +48,12 @@ When running the Google Maps Scraper, you need to configure what you want to scr
 Example input:
 ```json
 {
-  "searchStringsArray": ["pubs near prague"],
-  "lat": "50.0860729",
-  "lng": "14.4135326",
-  "zoom": 10
+  "searchStringsArray": ["pubs"],
+  "country": "prague"
 }
 ```
-With this input, the actor searches places at this start URL: https://www.google.com/maps/search/pubs+near+prague/@50.0860729,14.4135326,10z
 
 For detailed descriptions and examples for all input fields, please visit the dedicated [Input page](https://apify.com/drobnikj/crawler-google-places/input-schema).
-
-### Country localization
-You can force the scraper to access places only from a specific country. We recommend this to ensure that you receive the correct language in the results. This only works reliably for the US (most of our proxies are from the US). Currently, this option is not available in the Editor input - you have to switch to JSON input. After you switch, your configuration will remain the same, so just update the `proxyconfig` field with `apifyProxyCountry` property to specify the country, e.g.
-
-```json
-"proxyConfig": {
-    "useApifyProxy": true,
-    "apifyProxyCountry": "US"
-  }
-```
 
 ## Results
 The scraped data is stored in the dataset of each run. The data can be viewed or downloaded in many popular formats, such as JSON, CSV, Excel, XML, RSS, and HTML.
@@ -288,17 +275,19 @@ You can easily run this scraper locally or on your favorite platform. It can run
 ## How the search works
 It works exactly as though you were searching Google Maps on your computer. It opens https://www.google.com/maps/ and relocates to the specified location, then writes the search to the input. Then it presses the next page button until it reaches the final page or `maxCrawledPlaces`. It enqueues all the places as separate pages and then scrapes them. If you are unsure about anything, just try this process in your browser - the scraper does exactly the same thing.
 
-### Google automatically expands the search location
-There is one feature of Google Maps that is sometimes not desirable. As you progress to the next page, there might not be enough places of the type that you have searched for, e.g. restaurants in your city. Google will naturally zoom out and include places from a broader area. It will happily do this over a large area and might include places from far away that you are not interested in. There are three ways to solve this:
-
-- Limit `maxCrawledPlaces` - This is the simplest option, but you usually don't know how many places there are, so it isn't that useful.
-- Use the `maxAutomaticZoomOut` parameter to stop searching once Google zooms out too far. It counts how far it zoomed out from the first page. Keep in mind that `zoom: 1` is the whole world and `zoom: 21` is a tiny street. So you usually want `maxAutomaticZoomOut` to be between `0` and `5`.
-- Use `country`, `state`, `county`, `city` & `postalCode` parameters.
-
 ## Using country, state, county, city, and postal code parameters
-You can only use any combination of the geolocation parameters: `country`, `state`, `county`, `city` & `postalCode`. The scraper uses [nominatim maps](https://nominatim.org/) to find a location polygon and then splits that into multiple searches that cover the whole area. You should play around with the `zoom` number to find the ideal granularity for searches. Too small a zoom level will find only the most famous places over a large area, too big a zoom level will lead to overlapping places and will consume more Apify platform credits. We recommend a number between 10 and 15.
+You can only use any combination of the geolocation parameters: `country`, `state`, `county`, `city` & `postalCode`. The scraper uses [nominatim maps](https://nominatim.org/) to find a location polygon and then splits that into multiple searches that cover the whole area to ensure maximum scraped places.
 
-#### Warning: Don't use too big a zoom level (17+) with country, state, city parameters
+### Automatic zooming
+The scraper automatically zooms the map to ensure maximum results are extracted. Higher `zoom` ensures more (less known) places are scraped but takes longer to traverse by the scraper. Logically, the smaller the area is, the higher zoom should be used. Currently, the default `zoom` values are:
+
+`country` or `state` -> 12
+`county` -> 14
+`city` -> 18
+`postalCode` -> 19
+no geolocation -> 12
+
+If you need even more results or faster run, you can override these values with the `zoom` input parameter. `zoom` can be any number between 1 (whole globe) and 21 (few houses).
 
 ## Manual polygon
 

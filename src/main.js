@@ -30,7 +30,7 @@ Apify.main(async () => {
         // Search and Start URLs
         startUrls, searchStringsArray,
         // Geolocation
-        lat, lng, country, state, county, city, postalCode, zoom = 10, polygon,
+        lat, lng, country, state, county, city, postalCode, zoom, polygon,
         // browser and request options
         pageLoadTimeoutSec = 60, useChrome = false, maxConcurrency, maxPagesPerBrowser = 1, maxPageRetries = 6,
         // Misc
@@ -95,7 +95,7 @@ Apify.main(async () => {
         ({ startUrlSearches, geo } = await prepareSearchUrls({
             lat,
             lng,
-            zoom,
+            userOverridingZoom: zoom,
             country,
             state,
             county,
