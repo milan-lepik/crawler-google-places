@@ -49,7 +49,7 @@ Example input:
 ```json
 {
   "searchStringsArray": ["pubs"],
-  "country": "prague"
+  "city": "prague"
 }
 ```
 
@@ -276,7 +276,7 @@ You can easily run this scraper locally or on your favorite platform. It can run
 It works exactly as though you were searching Google Maps on your computer. It opens https://www.google.com/maps/ and relocates to the specified location, then writes the search to the input. Then it presses the next page button until it reaches the final page or `maxCrawledPlaces`. It enqueues all the places as separate pages and then scrapes them. If you are unsure about anything, just try this process in your browser - the scraper does exactly the same thing.
 
 ## Using country, state, county, city, and postal code parameters
-You can only use any combination of the geolocation parameters: `country`, `state`, `county`, `city` & `postalCode`. The scraper uses [nominatim maps](https://nominatim.org/) to find a location polygon and then splits that into multiple searches that cover the whole area to ensure maximum scraped places.
+You can use any combination of the geolocation parameters: `country`, `state`, `county`, `city` & `postalCode`. The scraper uses [nominatim maps](https://nominatim.org/) to find a location polygon and then splits that into multiple searches that cover the whole area to ensure maximum scraped places.
 
 ### Automatic zooming
 The scraper automatically zooms the map to ensure maximum results are extracted. Higher `zoom` ensures more (less known) places are scraped but takes longer to traverse by the scraper. Logically, the smaller the area is, the higher zoom should be used. Currently, the default `zoom` values are:
