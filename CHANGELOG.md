@@ -1,14 +1,17 @@
 # 2021-12-16
 *Breaking changes*
-We decided it is time to change several default parameters to make the user experience smoother. These changes should not have big effect on currect users.
+We decided it is time to change several default parameters to make the user experience smoother. These changes should not have a big effect on currect users.
 
 - `city` and other geolocation parameters will have preference over `lat` & `long` if both are used (*in 99% cases users want to use the automatic location splitting to get the most results which doesn't work with direct `lat` & `long`*)
 - `zoom` will no longer have a default value 12. Instead, it will change based on geolocation type like this:
-no geo or `country` or `state` -> zoom 12 (now default)
-`county` -> zoom 14
-`city` -> zoom 18
-`postalCode` -> zoom 19
-Users will still be able to specify the zoom and override this behavior. (This is to ensure the most results for smaller locations without needing to specify `zoom` directly)
+
+`country` or `state` -> 12
+`county` -> 14
+`city` -> 18
+`postalCode` -> 19
+no geolocation -> 12
+
+Users will still be able to specify the zoom and override this behavior.
 
 See [Readme](https://apify.com/drobnikj/crawler-google-places#automatic-zooming) for more details
 
