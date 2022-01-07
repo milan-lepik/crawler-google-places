@@ -41,6 +41,129 @@ module.exports.scrollTo = async (page, selectorToScroll, scrollToHeight) => {
     }, selectorToScroll, scrollToHeight);
 };
 
+/**
+ * 
+ * @param {string} sheetUrl 
+ * @returns {Promise<any[]>}
+ */
+const getCsvRowsFromGoogleSheets = async (sheetUrl) => {
+    const spreadsheetId = sheetUrl.replace(/(^.+docs.google.com\/spreadsheets\/d\/)|(\/.+$)/g, '');
+
+    const sheetsActorInput = {
+        mode: 'read',
+        spreadsheetId,
+        publicSpreadsheet: true,
+    };
+    
+    log.info(`Fetching start urls from Google Spreadsheet with id: ${spreadsheetId}.
+    Calling lukaskrivka/google-sheets actor...`);
+    const sheetRows = await Apify.call('lukaskrivka/google-sheets', sheetsActorInput);
+    log.info(`Actor lukaskrivka/google-sheets finished`);
+
+    return sheetRows?.output?.body;
+}
+
+/**
+ *
+ * @param {any[]} rows 
+ * @returns {string[]}
+ */
+const getUniqueStartUrlsFromCsvRows = (rows) => {
+    /** @type {string[]} */
+    const allUrls = [];
+
+    rows.forEach((row) => {
+        allUrls.push(...Object.keys(row));
+        allUrls.push(...Object.values(row));
+    });
+
+    const uniqueUrls = new Set(allUrls);
+    return Array.from(uniqueUrls);
+};
+
+/**
+ *
+ * @param {string} fileUrl
+ * @returns {boolean}
+ */
+const isCsvFile = (fileUrl) => {
+    const csvSuffixMatches = fileUrl.match(/.csv$/g);
+    return csvSuffixMatches?.length === 1;
+};
+
+/**
+ *
+ * @param {string} fileUrl
+ * @returns {boolean}
+ */
+ const isGoogleSpreadsheetFile = (fileUrl) => {
+    const googleSpreadsheetMatches = fileUrl.match(/docs.google.com\/spreadsheets/g);
+    return googleSpreadsheetMatches?.length === 1;
+};
+
+/**
+ * 
+ * @param {string} fileUrl 
+ */
+const parseStartUrlsFromFile = async (fileUrl) => {
+    /** @type {string[]} */
+    const startUrls = [];
+
+    if (isCsvFile(fileUrl)) {
+        const csvText = await Apify.utils.requestAsBrowser({ url: fileUrl  })
+            .then((response) => response.body);
+
+        const rows = csvText.split('\n');
+        startUrls.push(...rows);
+    } else if (isGoogleSpreadsheetFile(fileUrl)) {
+        const rows = await getCsvRowsFromGoogleSheets(fileUrl);
+        const uniqueStartUrls = getUniqueStartUrlsFromCsvRows(rows);
+
+        startUrls.push(...uniqueStartUrls);
+    }
+
+    return startUrls.filter((url) => url.length);
+};
+
+/**
+ * 
+ * @param {any[]} startUrls 
+ * @returns { Promise<{ url: string, uniqueKey: string }[]> }
+ */
+module.exports.parseRequestsFromStartUrls = async (startUrls) => {
+    /**
+     * @type { { url: string, uniqueKey: string }[] }
+     */
+    const updatedStartUrls = [];
+
+    for (const request of startUrls) {
+
+        if (typeof request === 'string') {
+            updatedStartUrls.push({
+                url: request,
+                uniqueKey: request,
+            });
+        }
+
+        const { url, requestsFromUrl } = request;
+        if (requestsFromUrl) {
+            const parsedStartUrls = await parseStartUrlsFromFile(requestsFromUrl);
+            const parsedRequests = parsedStartUrls.map((url) => ({
+                url,
+                uniqueKey: url
+            }));
+            updatedStartUrls.push(...parsedRequests);
+        } else {
+            updatedStartUrls.push({
+                ...request,
+                uniqueKey: url,
+            });
+        }
+    }
+
+    return updatedStartUrls;
+};
+
 /** @param {string} url */
 module.exports.parseZoomFromUrl = (url) => {
     const zoomMatch = url.match(/@[0-9.-]+,[0-9.-]+,([0-9.]+)z/);
@@ -125,7 +248,7 @@ module.exports.navigateBack = async (page, pageLabel, placeUrl) => {
             // pollInterval: 500,
             timeoutErrorMeesage: `Waiting for back navigation on ${pageLabel} page ran into a timeout after 10s on URL: ${placeUrl}`,
         });
-    } catch (e) {
+    } catch (/** @type {any}*/ e) {
         // As a last resort, we just reload the main page
         log.warning(`${e.message} - will hard reload the place page instead`);
         try {

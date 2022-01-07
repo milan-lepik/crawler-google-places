@@ -1,6 +1,8 @@
 const Apify = require('apify');
+const { REGEXES } = require('./consts');
 
 const typedefs = require('./typedefs'); // eslint-disable-line no-unused-vars
+const { normalizePlaceUrl } = require('./utils');
 
 const { log } = Apify.utils;
 
@@ -77,4 +79,54 @@ module.exports.validateInput = (input) => {
             throw 'It is not possible to crawl google places with GOOGLE SERP proxy group. Please use a different one and rerun  the crawler!';
         }
     }
+};
+
+/**
+ *
+ * @param {{
+ *  url: string,
+ *  uniqueKey: string
+ * }[] } updatedStartUrls 
+ * @returns {{
+ *  url: string,
+ *  uniqueKey: string,
+ *  userData: any
+ * }[] }
+ */
+module.exports.getValidStartRequests = (updatedStartUrls) => {
+    const startRequests = [];
+
+    for (const req of updatedStartUrls) {
+        if (!req) {
+            break;
+        }
+
+        if (!req.url) {
+            log.warning('There is no valid URL for this request:');
+            console.dir(req);
+        } else if (req.url.match(/https\:\/\/www\.google\.[a-z.]+\/search/)) {
+            log.warning('ATTENTION! URLs starting with "https://www.google.com/search" '
+                + 'are not supported! Please transform your URL to start with "https://www.google.com/maps"');
+            log.warning(`Happened for provided URL: ${req.url}`);
+        } else if (!Object.values(REGEXES).some((regex) => regex.test(req.url))) {
+            // allows only search and place urls
+            log.warning('ATTENTION! URL you provided is not '
+                + 'recognized as a valid Google Maps URL. '
+                + 'Please use URLs with /maps/search, /maps/place, google.com?cid=number or contact support@apify.com to add a new format');
+            log.warning(`Happened for provided URL: ${req.url}`);
+        } else {
+            const isPlace = [REGEXES.PLACE_URL_NORMAL, REGEXES.PLACE_URL_CID]
+                .some((regex) => regex.test(req.url));
+            // Only correct URL formats work properly (have JSON data)
+            if (REGEXES.PLACE_URL_NORMAL.test(req.url)) {
+                req.url = normalizePlaceUrl(req.url);
+            }
+            startRequests.push({
+                ...req,
+                userData: { label: isPlace ? 'detail' : 'startUrl', searchString: null, baseUrl: req.url },
+            });
+        }
+    }
+
+    return startRequests;
 };
