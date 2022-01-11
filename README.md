@@ -303,10 +303,6 @@ The most common type is polygon which is a set of points that define the locatio
     "coordinates": [
         [
             [
-                12.0905752, 
-                50.2524063  
-            ],
-            [
                 // Must be the same as last one
                 0.0686389, // Longitude
                 52.2161086 // Latitude
