@@ -1,4 +1,8 @@
-# 2021-12-16
+# 2021-01-11
+- Changed `polygon` input field to `customGeolocation`
+- Added deeper section into Reamde on how you can provide your own exact coordinates
+
+# 2021-01-11
 *Breaking changes*
 We decided it is time to change several default parameters to make the user experience smoother. These changes should not have a big effect on currect users.
 
@@ -7,8 +11,8 @@ We decided it is time to change several default parameters to make the user expe
 
 `country` or `state` -> 12
 `county` -> 14
-`city` -> 18
-`postalCode` -> 19
+`city` -> 17
+`postalCode` -> 18
 no geolocation -> 12
 
 Users will still be able to specify the zoom and override this behavior.
