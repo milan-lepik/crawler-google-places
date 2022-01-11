@@ -1,21 +1,5 @@
 const Apify = require('apify'); // eslint-disable-line no-unused-vars
 
-const Stats = require('./stats'); // eslint-disable-line no-unused-vars
-const ErrorSnapshotter = require('./error-snapshotter'); // eslint-disable-line no-unused-vars
-const PlacesCache = require('./places_cache'); // eslint-disable-line no-unused-vars
-const MaxCrawledPlacesTracker = require('./max-crawled-places'); // eslint-disable-line no-unused-vars
-const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-line no-unused-vars
-
-/**
- * Options for the scraping process
- * @typedef HelperClasses
- * @property {Stats} stats
- * @property {ErrorSnapshotter} errorSnapshotter
- * @property {MaxCrawledPlacesTracker} maxCrawledPlacesTracker
- * @property {PlacesCache} placesCache
- * @property {ExportUrlsDeduper | undefined} exportUrlsDeduper
- */
-
 /**
  * Options for the scraping process
  * @typedef ScrapingOptions
@@ -140,17 +124,6 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
 
 /**
  * @typedef {{
- * failed: number,
- * ok: number,
- * outOfPolygon: number,
- * outOfPolygonCached: number,
- * places: number,
- * maps: number,
- * }} InnerStats
- */
-
-/**
- * @typedef {{
  * noOutcomeLoaded?: boolean,
  * isBadQuery?: boolean,
  * hasNoResults?: boolean,
@@ -168,6 +141,11 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * lng: number,
  * }} Coordinates
  */
+
+export interface Coordinates {
+    lat: number,
+    lng: number,
+}
 
 /**
  * @typedef {{
@@ -199,20 +177,7 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * }} AddressParsed
  */
 
-/**
- * @typedef {{
- * url: string,
- * searchPageUrl: string,
- * coordinates: Coordinates,
- * }} PlaceOutOfPolygon
- */
 
-/**
- * @typedef {{
- * keywords: string[],
- * location: Coordinates,
- * }} CachedPlace
- */
 
 /**
  * geojson parameter from nomatim
@@ -237,15 +202,6 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * }} GeolocationFull
  */
 
-/**
- *  @typedef {{
- * enqueuedTotal: number,
- * enqueuedPerSearch: Object.<string, number>,
- * scrapedTotal: number,
- * scrapedPerSearch: Object.<string, number>,
- * }} MaxCrawledPlacesState
- *
- */
 
 /**
  *  @typedef {{

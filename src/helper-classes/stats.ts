@@ -1,31 +1,45 @@
-const Apify = require('apify');
+import Apify from 'apify';
 
-const typedefs = require('./typedefs'); // eslint-disable-line no-unused-vars
+import { Coordinates } from '../typedefs';
 
 const { utils: { log } } = Apify;
 
-module.exports = class Stats {
+const STATS_KV_KEY = 'STATS';
+const PLACES_OUT_OF_POLYGON_KV_KV = 'PLACES-OUT-OF-POLYGON';
+const PERSIST_BATCH_SIZE = 10000;
+
+interface InnerStats {
+    failed: number,
+    ok: number,
+    outOfPolygon: number,
+    outOfPolygonCached: number,
+    places: number,
+    maps: number,
+}
+
+interface PlaceOutOfPolygon {
+    url: string,
+    searchPageUrl: string,
+    coordinates: Coordinates,
+}
+
+export default class Stats {
+    stats: InnerStats;
+    placesOutOfPolygon: PlaceOutOfPolygon[];
+
     constructor() {
-        /** @type {typedefs.InnerStats} */
         this.stats = { failed: 0, ok: 0, outOfPolygon: 0, outOfPolygonCached: 0, places: 0, maps: 0 };
-        /** @type {typedefs.PlaceOutOfPolygon[]} */
-        this.placesOutOfPolygon = [];
-        this.statsKVKey = 'STATS';
-        this.placesOutOfPolygonKVKey = 'PLACES-OUT-OF-POLYGON';
-        this.persistBatchSize = 10000;
+        this.placesOutOfPolygon = [];   
     }
 
-    /**
-     * @param {any} events
-     */
-    async initialize(events) {
-        const loadedStats = /** @type {typedefs.InnerStats | undefined} */ (await Apify.getValue(this.statsKVKey));
+    async initialize() {
+        const loadedStats = await Apify.getValue(STATS_KV_KEY) as InnerStats | undefined;
         if (loadedStats) {
             this.stats = loadedStats;
         }
         await this.loadPlacesOutsideOfPolygon();
 
-        events.on('persistState', async () => {
+        Apify.events.on('persistState', async () => {
             await this.saveStats();
         });
     }
@@ -41,7 +55,7 @@ module.exports = class Stats {
     }
 
     async saveStats() {
-        await Apify.setValue(this.statsKVKey, this.stats);
+        await Apify.setValue(STATS_KV_KEY, this.stats);
         await this.persitsPlacesOutsideOfPolygon();
         await this.logInfo();
     }
@@ -70,8 +84,7 @@ module.exports = class Stats {
         this.stats.outOfPolygonCached++;
     }
 
-    /** @param {typedefs.PlaceOutOfPolygon} placeInfo */
-    addOutOfPolygonPlace(placeInfo) {
+    addOutOfPolygonPlace(placeInfo: PlaceOutOfPolygon) {
         this.placesOutOfPolygon.push(placeInfo);
     }
 
@@ -79,17 +92,15 @@ module.exports = class Stats {
         if (this.placesOutOfPolygon.length === 0) {
             return;
         }
-        for (let i = 0; i < this.placesOutOfPolygon.length; i += this.persistBatchSize) {
-            const slice = this.placesOutOfPolygon.slice(i, i + this.persistBatchSize);
-            await Apify.setValue(`${this.placesOutOfPolygonKVKey}-${i / this.persistBatchSize}`, slice);
+        for (let i = 0; i < this.placesOutOfPolygon.length; i += PERSIST_BATCH_SIZE) {
+            const slice = this.placesOutOfPolygon.slice(i, i + PERSIST_BATCH_SIZE);
+            await Apify.setValue(`${PLACES_OUT_OF_POLYGON_KV_KV}-${i / PERSIST_BATCH_SIZE}`, slice);
         }
     }
 
     async loadPlacesOutsideOfPolygon() {
-        for (let i = 0; ; i += this.persistBatchSize) {
-            const placesOutOfPolygonSlice =
-                /** @type {typedefs.PlaceOutOfPolygon[] | undefined} */
-                (await Apify.getValue(`${this.placesOutOfPolygonKVKey}-${i / this.persistBatchSize}`));
+        for (let i = 0; ; i += PERSIST_BATCH_SIZE) {
+            const placesOutOfPolygonSlice = await Apify.getValue(`${PLACES_OUT_OF_POLYGON_KV_KV}-${i / PERSIST_BATCH_SIZE}`) as PlaceOutOfPolygon[] | undefined;
             if (!placesOutOfPolygonSlice) {
                 return;
             }

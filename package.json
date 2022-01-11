@@ -29,9 +29,12 @@
         "puppeteer": "*"
     },
     "devDependencies": {
+        "@apify/tsconfig": "^0.1.0",
         "@types/jquery": "^3.5.5",
+        "@types/puppeteer": "^5.4.4",
         "chai": "^4.2.0",
         "mocha": "^8.2.0",
+        "typescript": "^4.5.4",
         "write-json": "^3.0.1"
     }
 }

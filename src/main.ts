@@ -1,14 +1,9 @@
-const Apify = require('apify');
+import Apify from 'apify';
 
-const typedefs = require('./typedefs'); // eslint-disable-line no-unused-vars
 const { PersonalDataOptions } = require('./typedefs');
 
+import { initializeHelperClasses } from './helper-classes/index';
 const placesCrawler = require('./places_crawler');
-const Stats = require('./stats');
-const ErrorSnapshotter = require('./error-snapshotter');
-const PlacesCache = require('./places_cache');
-const MaxCrawledPlacesTracker = require('./max-crawled-places');
-const ExportUrlsDeduper = require('./export-urls-deduper');
 const { prepareSearchUrlsAndGeo } = require('./search');
 const { createStartRequestsWithWalker } = require('./walker');
 const { makeInputBackwardsCompatible, validateInput } = require('./input-validation');
@@ -52,33 +47,16 @@ Apify.main(async () => {
         scrapeReviewerName = true, scrapeReviewerId = true, scrapeReviewerUrl = true,
         scrapeReviewId = true, scrapeReviewUrl = true, scrapeResponseFromOwnerText = true,
 
-    } = input;
+    } = input as any;
 
     if (debug) {
         log.setLevel(log.LEVELS.DEBUG);
     }
 
-    // Initializing all the supportive classes in this block
-
-    const stats = new Stats();
-    await stats.initialize(Apify.events);
-
-    const errorSnapshotter = new ErrorSnapshotter();
-    await errorSnapshotter.initialize(Apify.events);
-
-    // Only used for Heyrick. By default, this is not used and the functions are no-ops
-    const placesCache = new PlacesCache({ cachePlaces, cacheKey, useCachedPlaces });
-    await placesCache.initialize();
-
-    const maxCrawledPlacesTracker = new MaxCrawledPlacesTracker(maxCrawledPlaces, maxCrawledPlacesPerSearch);
-    await maxCrawledPlacesTracker.initialize(Apify.events);
-
-    /** @type {ExportUrlsDeduper | undefined} */
-    let exportUrlsDeduper;
-    if (exportPlaceUrls) {
-        exportUrlsDeduper = new ExportUrlsDeduper();
-        await exportUrlsDeduper.initialize(Apify.events);
-    }
+    const { 
+        stats, errorSnapshotter, placesCache, maxCrawledPlacesTracker, exportUrlsDeduper,
+    } = await initializeHelperClasses({ cachePlaces, cacheKey, useCachedPlaces, maxCrawledPlaces, maxCrawledPlacesPerSearch, exportPlaceUrls });
+    
     
     // Requests that are used in the queue, we persist them to skip this step after migration
     const startRequests = /** @type {Apify.RequestOptions[]} */ (await Apify.getValue('START-REQUESTS')) || [];
