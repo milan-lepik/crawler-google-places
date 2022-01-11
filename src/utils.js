@@ -3,7 +3,8 @@ const Puppeteer = require('puppeteer');
 
 const { DEFAULT_TIMEOUT, PLACE_TITLE_SEL, BACK_BUTTON_SEL } = require('./consts');
 
-const { log } = Apify.utils;
+const { utils } = Apify;
+const { log } = utils;
 
 /**
  * Wait until google map loader disappear
@@ -42,44 +43,37 @@ module.exports.scrollTo = async (page, selectorToScroll, scrollToHeight) => {
 };
 
 /**
- * 
- * @param {string} sheetUrl 
- * @returns {Promise<any[]>}
+ *
+ * @param {string} sheetUrl
+ * @returns {string | null} downloadUrl
  */
-const getCsvRowsFromGoogleSheets = async (sheetUrl) => {
-    const spreadsheetId = sheetUrl.replace(/(^.+docs.google.com\/spreadsheets\/d\/)|(\/.+$)/g, '');
+const convertGoogleSheetsUrlToCsvDownload = (sheetUrl) => {
+    const CSV_DOWNLOAD_SUFFIX = 'gviz/tq?tqx=out:csv';
+    const baseUrlMatches = sheetUrl.match(/^.*docs.google.com\/spreadsheets\/d\/.+\//g);
 
-    const sheetsActorInput = {
-        mode: 'read',
-        spreadsheetId,
-        publicSpreadsheet: true,
-    };
+    if (!baseUrlMatches || baseUrlMatches.length === 0) {
+        log.error(`Invalid start url provided (${sheetUrl}).
+        Google spreadsheet url must contain: docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/`);
+        return null;
+    } 
     
-    log.info(`Fetching start urls from Google Spreadsheet with id: ${spreadsheetId}.
-    Calling lukaskrivka/google-sheets actor...`);
-    const sheetRows = await Apify.call('lukaskrivka/google-sheets', sheetsActorInput);
-    log.info(`Actor lukaskrivka/google-sheets finished`);
+    const baseUrl = baseUrlMatches[0];
+    const downloadRequestUrl = `${baseUrl}${CSV_DOWNLOAD_SUFFIX}`;
 
-    return sheetRows?.output?.body;
+    return downloadRequestUrl;
 }
 
 /**
  *
- * @param {any[]} rows 
- * @returns {string[]}
+ * @param {string} downloadUrl
+ * @returns {Promise<any[]>}
  */
-const getUniqueStartUrlsFromCsvRows = (rows) => {
-    /** @type {string[]} */
-    const allUrls = [];
+const fetchRowsFromCsvFile = async (downloadUrl) => {    
+    const { body } = await utils.requestAsBrowser({ url: downloadUrl});
+    const rows = body.replaceAll('"', '').split('\n');
 
-    rows.forEach((row) => {
-        allUrls.push(...Object.keys(row));
-        allUrls.push(...Object.values(row));
-    });
-
-    const uniqueUrls = new Set(allUrls);
-    return Array.from(uniqueUrls);
-};
+    return Array.from(new Set(rows));
+}
 
 /**
  *
@@ -107,22 +101,17 @@ const isCsvFile = (fileUrl) => {
  */
 const parseStartUrlsFromFile = async (fileUrl) => {
     /** @type {string[]} */
-    const startUrls = [];
+    let startUrls = [];
 
     if (isCsvFile(fileUrl)) {
-        const csvText = await Apify.utils.requestAsBrowser({ url: fileUrl  })
-            .then((response) => response.body);
-
-        const rows = csvText.split('\n');
-        startUrls.push(...rows);
+        startUrls = await fetchRowsFromCsvFile(fileUrl);
     } else if (isGoogleSpreadsheetFile(fileUrl)) {
-        const rows = await getCsvRowsFromGoogleSheets(fileUrl);
-        const uniqueStartUrls = getUniqueStartUrlsFromCsvRows(rows);
-
-        startUrls.push(...uniqueStartUrls);
+        const dowloadUrl = convertGoogleSheetsUrlToCsvDownload(fileUrl);
+        startUrls = dowloadUrl ? await fetchRowsFromCsvFile(dowloadUrl) : [];
     }
 
-    return startUrls.filter((url) => url.length);
+    const trimmedStartUrls = startUrls.map((url) => url.trim());
+    return trimmedStartUrls.filter((url) => url.length);
 };
 
 /**
@@ -134,30 +123,34 @@ module.exports.parseRequestsFromStartUrls = async (startUrls) => {
     /**
      * @type { { url: string, uniqueKey: string }[] }
      */
-    const updatedStartUrls = [];
+    let updatedStartUrls = [];
+
+    /**
+     * `uniqueKey` is specified explicitly for each request object 
+     * as SDK otherwise wrongly normalizes it
+     */
 
     for (const request of startUrls) {
-
         if (typeof request === 'string') {
             updatedStartUrls.push({
                 url: request,
                 uniqueKey: request,
             });
-        }
-
-        const { url, requestsFromUrl } = request;
-        if (requestsFromUrl) {
-            const parsedStartUrls = await parseStartUrlsFromFile(requestsFromUrl);
-            const parsedRequests = parsedStartUrls.map((url) => ({
-                url,
-                uniqueKey: url
-            }));
-            updatedStartUrls.push(...parsedRequests);
         } else {
-            updatedStartUrls.push({
-                ...request,
-                uniqueKey: url,
-            });
+            const { url, requestsFromUrl } = request;
+            if (requestsFromUrl) {
+                const parsedStartUrls = await parseStartUrlsFromFile(requestsFromUrl);
+                const parsedRequests = parsedStartUrls.map((url) => ({
+                    url,
+                    uniqueKey: url
+                }));
+                updatedStartUrls = updatedStartUrls.concat(parsedRequests);
+            } else {
+                updatedStartUrls.push({
+                    ...request,
+                    uniqueKey: url,
+                });
+            }
         }
     }
 

@@ -113,8 +113,9 @@ Apify.main(async () => {
             // Apify has a tendency to strip part of URL for uniqueKey for Google Maps URLs
 
             const updatedStartUrls = await parseRequestsFromStartUrls(startUrls);
-            startRequests.push(...getValidStartRequests(updatedStartUrls));
-
+            const validStartRequests = getValidStartRequests(updatedStartUrls);
+            validStartRequests.forEach((req) => startRequests.push(req));
+            
         } else if (searchStringsArray) {
             for (const searchString of searchStringsArray) {
                 // Sometimes users accidentally pass empty strings
