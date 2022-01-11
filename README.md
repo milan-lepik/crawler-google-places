@@ -281,18 +281,85 @@ You can use any combination of the geolocation parameters: `country`, `state`, `
 ### Automatic zooming
 The scraper automatically zooms the map to ensure maximum results are extracted. Higher `zoom` ensures more (less known) places are scraped but takes longer to traverse by the scraper. Logically, the smaller the area is, the higher zoom should be used. Currently, the default `zoom` values are:
 
-`country` or `state` -> 12
+no geo or `country` or `state` -> 12
 `county` -> 14
-`city` -> 18
-`postalCode` -> 19
-no geolocation -> 12
+`city` -> 17
+`postalCode` -> 18
 
 If you need even more results or faster run, you can override these values with the `zoom` input parameter. `zoom` can be any number between 1 (whole globe) and 21 (few houses).
 
-## Manual polygon
-
-The easiest way to use our Google Maps Scraper is to provide `country`, `state`, `county`, `city` or `postalCode` input parameters. But in some rare cases, your location might not be found or you may want to customize it. In that case, you can use a manual polygon for the creation of start URLs. It should have the following GeoJSON structure from the [Nominatim Api](https://nominatim.openstreetmap.org)
+## Custom Geolocation
+The easiest way to use our Google Maps Scraper is to provide `country`, `state`, `county`, `city` or `postalCode` input parameters. But in some rare cases, your location might not be found or you may want to customize it. In that case, you can use `customGeolocation` for the creation of start URLs. As example, see the `geojson` field in [Nominatim Api](https://nominatim.openstreetmap.org)
 (see [here for the example of Cambridge in Great Britain](https://nominatim.openstreetmap.org/search?country=united%20kingdom&state=&city=cambridge&postalcode=&format=json&polygon_geojson=1&limit=1&polygon_threshold=0.005))
+
+There are several types of geolocation geometry that you can use. All follow official [Geo Json RFC](https://datatracker.ietf.org/doc/html/rfc7946#section-3.1.2).
+
+### Polygon
+The most common type is polygon which is a set of points that define the location. **The first and last coordinate must be equal (to close the polygon)!!!** `customGeolocation` should have this format:
+
+```jsonc
+{
+    "type": "Polygon",
+    "coordinates": [
+        [
+            [
+                12.0905752, 
+                50.2524063  
+            ],
+            [
+                // Must be the same as last one
+                0.0686389, // Longitude
+                52.2161086 // Latitude
+            ],
+            [
+                0.1046861,
+                52.1906436
+            ],
+            [
+                0.0981038,
+                52.1805451
+            ],
+            [
+                0.1078243,
+                52.16831
+            ],
+            [
+                // Must be the same as first one
+                0.0686389, 
+                52.2161086
+            ]
+        // ...
+        ]
+    ]
+}
+```
+
+### MultiPolygon
+Multi polygon can combine more polygons that are not continuous together
+```jsonc
+{
+    "type": "MultiPolygon",
+    "coordinates": [
+        [ // first polygon
+            [
+                [
+                    12.0905752, // Longitude
+                    50.2524063  // Latitude
+                ],
+                [
+                    12.1269337,
+                    50.2324336
+                ],
+                // ...
+            ]
+        ],
+        [
+            // second polygon
+            // ...
+        ]
+    ]
+}
+```
 
 ## Personal data
 Reviews can contain personal data such as a name, profile image, and even a review ID that could be used to track down the reviewer. Personal data is protected by GDPR in the European Union and by other regulations around the world. You should not scrape personal data unless you have a legitimate reason to do so. If you're unsure whether your reason is legitimate, consult your lawyers. This scraper allows you to granularly select which personal data fields you want to extract from reviews and which not.

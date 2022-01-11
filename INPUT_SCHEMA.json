@@ -371,11 +371,11 @@
             "minimum": 0,
             "maximum": 10
         },
-        "polygon": {
-            "title": "Manual polygon",
+        "customGeolocation": {
+            "title": "Custom geolocation",
             "type": "object",
             "editor": "json",
-            "description": "Manual polygon to define exact search area if other geolocation parameters don't work well. See README for details."
+            "description": "Custom geolocation to define exact search area if other geolocation parameters don't work well. See see <a href='https://apify.com/drobnikj/crawler-google-places#custom-geolocation' target='_blank' rel='noopener'>readme</a> for details."
         },
         "proxyConfig": {
             "title": "Proxy configuration",

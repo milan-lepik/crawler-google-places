@@ -26,7 +26,7 @@ const CHECK_LOAD_OUTCOMES_EVERY_MS = 500;
  *   request: Apify.Request,
  *   searchString: string,
  *   exportPlaceUrls: boolean,
- *   geo: object,
+ *   geolocation: typedefs.Geolocation | undefined,
  *   placesCache: PlacesCache,
  *   stats: Stats,
  *   maxCrawledPlacesTracker: MaxCrawledPlacesTracker,
@@ -36,7 +36,7 @@ const CHECK_LOAD_OUTCOMES_EVERY_MS = 500;
  * @return {(response: Puppeteer.Response) => Promise<any>}
  */
 const enqueuePlacesFromResponse = (options) => {
-    const { page, requestQueue, searchString, request, exportPlaceUrls, geo,
+    const { page, requestQueue, searchString, request, exportPlaceUrls, geolocation,
         placesCache, stats, maxCrawledPlacesTracker, exportUrlsDeduper, crawler } = options;
     return async (response) => {
         const url = response.url();
@@ -66,7 +66,7 @@ const enqueuePlacesFromResponse = (options) => {
             placesCache.addLocation(placePaginationData.placeId, coordinates, searchString);
 
             // true if no geo or coordinates
-            const isCorrectGeolocation = checkInPolygon(geo, coordinates);
+            const isCorrectGeolocation = checkInPolygon(geolocation, coordinates);
             if (!isCorrectGeolocation) {
                 stats.outOfPolygonCached();
                 stats.outOfPolygon();
@@ -194,7 +194,7 @@ module.exports.enqueueAllPlaceDetails = async ({
                                           scrapingOptions,
                                           helperClasses,
                                       }) => {
-    const { geo, maxAutomaticZoomOut, exportPlaceUrls } = scrapingOptions;
+    const { geolocation, maxAutomaticZoomOut, exportPlaceUrls } = scrapingOptions;
     const { stats, placesCache, maxCrawledPlacesTracker, exportUrlsDeduper } = helperClasses;
 
     let numberOfEmptyDataPages = 0;
@@ -205,7 +205,7 @@ module.exports.enqueueAllPlaceDetails = async ({
         searchString,
         request,
         exportPlaceUrls,
-        geo,
+        geolocation,
         placesCache,
         stats,
         maxCrawledPlacesTracker,
