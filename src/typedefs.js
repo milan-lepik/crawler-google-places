@@ -31,7 +31,7 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * @property {boolean} additionalInfo
  * @property {string} reviewsSort
  * @property {string} language
- * @property {object} geo
+ * @property {Geolocation | undefined} geolocation
  * @property {string} reviewsTranslation
  * @property {PersonalDataOptions} personalDataOptions
  */
@@ -64,7 +64,7 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * @property {string} [city]
  * @property {string} [postalCode]
  * @property {number} [zoom]
- * @property {any} [polygon]
+ * @property {Geolocation} [customGeolocation]
  * @property {number} [pageLoadTimeoutSec]
  * @property {boolean} [useChrome]
  * @property {number} [maxConcurrency]
@@ -175,6 +175,7 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * coords: Coordinates,
  * addressParsed: AddressParsed | undefined,
  * isAdvertisement: boolean,
+ * categories: string[],
  * }} PlacePaginationData
  */
 
@@ -214,12 +215,26 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  */
 
 /**
+ * geojson parameter from nomatim
+ * coordinates have different shape depending on type
+ * geometry is only available in few shapes
  * @typedef {{
- * geojson: {
- *     type: string,
- *     coordinates: number[][]
- * }
- * }} GeoJson
+ *   type: string,
+ *   coordinates: any,
+ *   geometry: any,
+ * }} Geolocation
+ */
+
+/**
+ * JSON object returned from OpenMaps or provided manually
+ * Might contain other fields
+ * Sometimes geojson is not provided so we have to use boundingBox
+ * User provided customGeolocation should always be GeoJson format
+ * @typedef {{
+ * geojson: Geolocation | undefined,
+ * boundingbox: string[] | undefined,
+ * display_name: string | undefined,
+ * }} GeolocationFull
  */
 
 /**
@@ -230,7 +245,7 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * scrapedPerSearch: Object.<string, number>,
  * }} MaxCrawledPlacesState
  *
- */ 
+ */
 
 /**
  *  @typedef {{
@@ -238,6 +253,6 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * popularTimesLivePercent: number,
  * popularTimesHistogram: Object.<string, Array<{ hour: number, occupancyPercent: 0 }>>,
  * }} PopularTimesOutput
- */ 
+ */
 
 module.exports = {};

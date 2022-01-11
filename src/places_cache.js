@@ -119,17 +119,17 @@ module.exports = class PlacesCache {
 
     /**
      * Find places for specific polygon a keywords.
-     * @param {typedefs.GeoJson} geo
+     * @param {typedefs.Geolocation | undefined} geolocation
      * @param {number} maxCrawledPlaces
      * @param {string[]} keywords
      * @returns {string[]}
      */
-    placesInPolygon(geo, maxCrawledPlaces, keywords = []) {
+    placesInPolygon(geolocation, maxCrawledPlaces, keywords = []) {
         const arr = [];
         if (!this.cachePlaces || !this.useCachedPlaces) return arr;
         for (const placeId in this.allPlaces) {
             // check if cached location is desired polygon and has at least one search string currently needed
-            if (checkInPolygon(geo, this.getLocation(placeId)) &&
+            if (checkInPolygon(geolocation, this.getLocation(placeId)) &&
                 (this.place(placeId).keywords.length === 0 || this.place(placeId).keywords.filter(x => keywords.includes(x)).length > 0))
                 arr.push(placeId);
             if (maxCrawledPlaces && maxCrawledPlaces !== 0 && arr.length >= maxCrawledPlaces)

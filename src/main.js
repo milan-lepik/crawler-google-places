@@ -9,7 +9,7 @@ const ErrorSnapshotter = require('./error-snapshotter');
 const PlacesCache = require('./places_cache');
 const MaxCrawledPlacesTracker = require('./max-crawled-places');
 const ExportUrlsDeduper = require('./export-urls-deduper');
-const { prepareSearchUrls } = require('./search');
+const { prepareSearchUrlsAndGeo } = require('./search');
 const { createStartRequestsWithWalker } = require('./walker');
 const { makeInputBackwardsCompatible, validateInput } = require('./input-validation');
 const { REGEXES } = require('./consts');
@@ -30,7 +30,7 @@ Apify.main(async () => {
         // Search and Start URLs
         startUrls, searchStringsArray,
         // Geolocation
-        lat, lng, country, state, county, city, postalCode, zoom, polygon,
+        lat, lng, country, state, county, city, postalCode, zoom, customGeolocation,
         // browser and request options
         pageLoadTimeoutSec = 60, useChrome = false, maxConcurrency, maxPagesPerBrowser = 1, maxPageRetries = 6,
         // Misc
@@ -87,12 +87,12 @@ Apify.main(async () => {
 
     // We declare geolocation as top level variable so it is constructed only once in memory,
     // persisted and then used to check all requests
-    let geo;
+    let geolocation;
     let startUrlSearches;
     // We crate geolocation only for search. not for Start URLs
     if (!Array.isArray(startUrls) || startUrls.length === 0) {
         // This call is async because it persists geolocation into KV
-        ({ startUrlSearches, geo } = await prepareSearchUrls({
+        ({ startUrlSearches, geolocation } = await prepareSearchUrlsAndGeo({
             lat,
             lng,
             userOverridingZoom: zoom,
@@ -101,7 +101,7 @@ Apify.main(async () => {
             county,
             city,
             postalCode,
-            polygon,
+            customGeolocation,
         }));
     }
 
@@ -200,7 +200,7 @@ Apify.main(async () => {
             }
 
             // use cached place ids for geolocation
-            for (const placeId of placesCache.placesInPolygon(geo, maxCrawledPlaces, searchStringsArray)) {
+            for (const placeId of placesCache.placesInPolygon(geolocation, maxCrawledPlaces, searchStringsArray)) {
                 const searchString = searchStringsArray.filter(x => placesCache.place(placeId)?.keywords.includes(x))[0];
                 startRequests.push({
                     url: `https://www.google.com/maps/search/?api=1&query=${searchString}&query_place_id=${placeId}`,
@@ -292,7 +292,7 @@ Apify.main(async () => {
         includeHistogram, includeOpeningHours, includePeopleAlsoSearch,
         maxReviews, maxImages, exportPlaceUrls, additionalInfo,
         maxAutomaticZoomOut, reviewsSort, language,
-        geo, reviewsTranslation,
+        geolocation, reviewsTranslation,
         personalDataOptions,
     };
 

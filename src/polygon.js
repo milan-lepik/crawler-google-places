@@ -16,7 +16,10 @@ const GEO_TYPES = {
 const FEATURE_COLLECTION = 'FeatureCollection';
 const FEATURE = 'Feature';
 
-function coordinatesFromBoundingBox(boundingbox) {
+/**
+ * @param {string[]} boundingbox
+ */
+function getPolygonFromBoundingBox(boundingbox) {
     const numberBBox = boundingbox.map(Number);
     // Format for their bounding box is [lat, lat, long, long]
     // Format of their coordinate points in [long, lat]
@@ -33,16 +36,16 @@ function coordinatesFromBoundingBox(boundingbox) {
 /**
  * Checks if provided coordinates are inside a geolocation
  * If no coordinates or geo is provided, this returns true (ease of use for non geolocated searches)
- * @param { GeoJson | null | undefined } geo
+ * @param { typedefs.Geolocation | undefined} geolocation
  * @param {typedefs.Coordinates | null | undefined} coordinates
  */
-module.exports.checkInPolygon = (geo, coordinates) => {
-    if (!geo || ! coordinates) {
+module.exports.checkInPolygon = (geolocation, coordinates) => {
+    if (!geolocation || !coordinates) {
         return true;
     }
     const point = turf.point([coordinates.lng, coordinates.lat]);
     let included = false;
-    const polygons = getPolygons(geo.geojson);
+    const polygons = getPolygons(geolocation);
     for (const polygon of polygons) {
         included = turf.booleanContains(polygon, point);
         if (included) break;
@@ -51,17 +54,17 @@ module.exports.checkInPolygon = (geo, coordinates) => {
 }
 
 /**
- * @param {{ geometry?: any; coordinates?: any; type?: any; }} geoJson
+ * @param {typedefs.Geolocation} geolocation
  * @param {number | undefined} distanceKilometers
  */
-function getPolygons(geoJson, distanceKilometers = 5) {
-    const { coordinates, type } = geoJson;
+function getPolygons(geolocation, distanceKilometers = 5) {
+    const { coordinates, type, geometry } = geolocation;
     if (type === GEO_TYPES.POLYGON) {
         return [turf.polygon(coordinates)];
     }
 
-    if (type === FEATURE && geoJson.geometry.type === GEO_TYPES.POLYGON) {
-        return [geoJson.geometry];
+    if (type === FEATURE && geometry.type === GEO_TYPES.POLYGON) {
+        return [geometry];
     }
 
     // We got only the point for city, lets create a circle...
@@ -105,12 +108,12 @@ module.exports.getGeolocation = async (options) => {
     });
     // @ts-ignore
     const body = JSON.parse(res.body);
-    const data = body[0];
-    if (!data) {
+    const geolocationFull = body[0];
+    if (!geolocationFull) {
         throw new Error('[Geolocation]: Location not found! Try other geolocation options or contact support@apify.com.');
     }
-    log.info(`[Geolocation]: Location found: ${data.display_name}, lat: ${data.lat}, long: ${data.lon}`);
-    return data;
+    log.info(`[Geolocation]: Location found: ${geolocationFull.display_name}, lat: ${geolocationFull.lat}, long: ${geolocationFull.lon}`);
+    return geolocationFull;
 }
 
 /**
@@ -123,28 +126,36 @@ function distanceByZoom(lat, zoom) {
 }
 
 /**
+ * Throws error if geojson and boundingbox are missing
+ * Calculates geojson from bouding box
+ * @param {typedefs.GeolocationFull} geolocationFull
+ * @returns {typedefs.Geolocation}
+ */
+module.exports.getGeoJson = (geolocationFull) => {
+    let { geojson, boundingbox } = geolocationFull;
+    
+    if (geojson) {
+        return geojson;
+    }
+
+    if (!boundingbox) {
+        throw new Error(`[Geolocation]: Could not find geojson or bounding box in geolocation for ${geolocationFull.display_name}`);
+    }
+    return {
+        coordinates: getPolygonFromBoundingBox(boundingbox),
+        type: GEO_TYPES.POLYGON,
+        geometry: undefined,
+    }; 
+}
+
+/**
  *  Prepare centre points grid for search
- * @param {any} location - GeoJSON
+ * @param {typedefs.Geolocation} geolocation
  * @param {number} zoom
  * @returns {Promise<*[]|*>} Array of points
  */
-module.exports.findPointsInPolygon = async (location, zoom) => {
-    let { geojson, boundingbox } = location;
-
-    // If there are no coordinates, we will construct them from bounding box
-    if (!geojson) {
-        if (!boundingbox) {
-            throw new Error(`[Geolocation]: Could not find any coordinates or bounding box for ${location.display_name}`);
-        }
-        geojson = {
-            coordinates: coordinatesFromBoundingBox(boundingbox),
-            type: GEO_TYPES.POLYGON,
-        };
-        // We fake this so it can be passed to places
-        location.geojson = geojson;
-    }
-
-    const { coordinates, type } = geojson;
+module.exports.findPointsInPolygon = async (geolocation, zoom) => {
+    const { coordinates, type } = geolocation;
     if (!coordinates && ![FEATURE_COLLECTION, FEATURE].includes(type)) return [];
 
     const points = [];
@@ -162,7 +173,7 @@ module.exports.findPointsInPolygon = async (location, zoom) => {
         });
     }
     try {
-        const polygons = getPolygons(geojson, 5);
+        const polygons = getPolygons(geolocation, 5);
 
         polygons.forEach((polygon) => {
             const bbox = turf.bbox(polygon);
@@ -174,7 +185,7 @@ module.exports.findPointsInPolygon = async (location, zoom) => {
             while (distanceKilometers > 0) {
                 log.debug('distanceKilometers', { distanceKilometers });
                 // Use lower distance for points
-                const distance = geojson.type === GEO_TYPES.POINT ? distanceKilometers / 2 : distanceKilometers;
+                const distance = geolocation.type === GEO_TYPES.POINT ? distanceKilometers / 2 : distanceKilometers;
                 const options = {
                     units: 'kilometers',
                     mask: polygon,

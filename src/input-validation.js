@@ -52,6 +52,11 @@ module.exports.makeInputBackwardsCompatible = (input) => {
             input.searchStringsArray = [input.searchString];
         }
     }
+    
+    // Changed 2022-01
+    if (input.polygon && input.polygon.geoJson) {
+        input.customGeolocation = input.polygon.geoJson;
+    }
 };
 
 // First we deprecate and re-map old values and then we validate
