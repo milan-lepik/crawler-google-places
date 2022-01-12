@@ -3,7 +3,8 @@ const Puppeteer = require('puppeteer');
 
 const { DEFAULT_TIMEOUT, PLACE_TITLE_SEL, BACK_BUTTON_SEL } = require('./consts');
 
-const { log } = Apify.utils;
+const { utils } = Apify;
+const { log } = utils;
 
 /**
  * Wait until google map loader disappear
@@ -39,6 +40,121 @@ module.exports.scrollTo = async (page, selectorToScroll, scrollToHeight) => {
         const scrollable = document.querySelector(selector);
         scrollable.scrollTop = height;
     }, selectorToScroll, scrollToHeight);
+};
+
+/**
+ *
+ * @param {string} sheetUrl
+ * @returns {string | null} downloadUrl
+ */
+const convertGoogleSheetsUrlToCsvDownload = (sheetUrl) => {
+    const CSV_DOWNLOAD_SUFFIX = 'gviz/tq?tqx=out:csv';
+    const baseUrlMatches = sheetUrl.match(/^.*docs.google.com\/spreadsheets\/d\/.+\//g);
+
+    if (!baseUrlMatches || baseUrlMatches.length === 0) {
+        log.error(`Invalid start url provided (${sheetUrl}).
+        Google spreadsheet url must contain: docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/`);
+        return null;
+    } 
+    
+    const baseUrl = baseUrlMatches[0];
+    const downloadRequestUrl = `${baseUrl}${CSV_DOWNLOAD_SUFFIX}`;
+
+    return downloadRequestUrl;
+}
+
+/**
+ *
+ * @param {string} downloadUrl
+ * @returns {Promise<any[]>}
+ */
+const fetchRowsFromCsvFile = async (downloadUrl) => {    
+    const { body } = await utils.requestAsBrowser({ url: downloadUrl});
+    const rows = body.replaceAll('"', '').split('\n');
+
+    return Array.from(new Set(rows));
+}
+
+/**
+ *
+ * @param {string} fileUrl
+ * @returns {boolean}
+ */
+const isCsvFile = (fileUrl) => {
+    const csvSuffixMatches = fileUrl.match(/.csv$/g);
+    return csvSuffixMatches?.length === 1;
+};
+
+/**
+ *
+ * @param {string} fileUrl
+ * @returns {boolean}
+ */
+ const isGoogleSpreadsheetFile = (fileUrl) => {
+    const googleSpreadsheetMatches = fileUrl.match(/docs.google.com\/spreadsheets/g);
+    return googleSpreadsheetMatches?.length === 1;
+};
+
+/**
+ * 
+ * @param {string} fileUrl 
+ */
+const parseStartUrlsFromFile = async (fileUrl) => {
+    /** @type {string[]} */
+    let startUrls = [];
+
+    if (isCsvFile(fileUrl)) {
+        startUrls = await fetchRowsFromCsvFile(fileUrl);
+    } else if (isGoogleSpreadsheetFile(fileUrl)) {
+        const dowloadUrl = convertGoogleSheetsUrlToCsvDownload(fileUrl);
+        startUrls = dowloadUrl ? await fetchRowsFromCsvFile(dowloadUrl) : [];
+    }
+
+    const trimmedStartUrls = startUrls.map((url) => url.trim());
+    return trimmedStartUrls.filter((url) => url.length);
+};
+
+/**
+ * 
+ * @param {any[]} startUrls 
+ * @returns { Promise<{ url: string, uniqueKey: string }[]> }
+ */
+module.exports.parseRequestsFromStartUrls = async (startUrls) => {
+    /**
+     * @type { { url: string, uniqueKey: string }[] }
+     */
+    let updatedStartUrls = [];
+
+    /**
+     * `uniqueKey` is specified explicitly for each request object 
+     * as SDK otherwise wrongly normalizes it
+     */
+
+    for (const request of startUrls) {
+        if (typeof request === 'string') {
+            updatedStartUrls.push({
+                url: request,
+                uniqueKey: request,
+            });
+        } else {
+            const { url, requestsFromUrl } = request;
+            if (requestsFromUrl) {
+                const parsedStartUrls = await parseStartUrlsFromFile(requestsFromUrl);
+                const parsedRequests = parsedStartUrls.map((url) => ({
+                    url,
+                    uniqueKey: url
+                }));
+                updatedStartUrls = updatedStartUrls.concat(parsedRequests);
+            } else {
+                updatedStartUrls.push({
+                    ...request,
+                    uniqueKey: url,
+                });
+            }
+        }
+    }
+
+    return updatedStartUrls;
 };
 
 /** @param {string} url */
@@ -125,7 +241,7 @@ module.exports.navigateBack = async (page, pageLabel, placeUrl) => {
             // pollInterval: 500,
             timeoutErrorMeesage: `Waiting for back navigation on ${pageLabel} page ran into a timeout after 10s on URL: ${placeUrl}`,
         });
-    } catch (e) {
+    } catch (/** @type {any}*/ e) {
         // As a last resort, we just reload the main page
         log.warning(`${e.message} - will hard reload the place page instead`);
         try {

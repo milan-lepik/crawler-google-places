@@ -11,9 +11,8 @@ const MaxCrawledPlacesTracker = require('./max-crawled-places');
 const ExportUrlsDeduper = require('./export-urls-deduper');
 const { prepareSearchUrlsAndGeo } = require('./search');
 const { createStartRequestsWithWalker } = require('./walker');
-const { makeInputBackwardsCompatible, validateInput } = require('./input-validation');
-const { REGEXES } = require('./consts');
-const { normalizePlaceUrl } = require('./utils');
+const { makeInputBackwardsCompatible, validateInput, getValidStartRequests } = require('./input-validation');
+const { parseRequestsFromStartUrls } = require('./utils');
 
 const { log } = Apify.utils;
 
@@ -112,54 +111,11 @@ Apify.main(async () => {
                 log.warning('\n\n------\nUsing Start URLs disables search. You can use either search or Start URLs.\n------\n');
             }
             // Apify has a tendency to strip part of URL for uniqueKey for Google Maps URLs
-            const updatedStartUrls = startUrls.map((request) => {
-                if (typeof request === 'string') {
-                    return {
-                        url: request,
-                        uniqueKey: request
-                    }
-                }
-                return {
-                    ...request,
-                    uniqueKey: request.url,
-                }
-            });
-            // We do this trick with request list to automaticaly work for requestsFromUrl
-            const rlist = await Apify.openRequestList('STARTURLS', updatedStartUrls);
-            for (;;) {
-                const req = await rlist.fetchNextRequest();
-                if (!req) {
-                    break;
-                }
-                // We have to do this here again if requestsFromUrl were used
-                req.uniqueKey = req.url;
 
-                if (!req.url) {
-                    log.warning('There is no valid URL for this request:');
-                    console.dir(req);
-                } else if (req.url.match(/https\:\/\/www\.google\.[a-z.]+\/search/)) {
-                    log.warning('ATTENTION! URLs starting with "https://www.google.com/search" '
-                        + 'are not supported! Please transform your URL to start with "https://www.google.com/maps"');
-                    log.warning(`Happened for provided URL: ${req.url}`);
-                } else if (!Object.values(REGEXES).some((regex) => regex.test(req.url))) {
-                    // allows only search and place urls
-                    log.warning('ATTENTION! URL you provided is not '
-                        + 'recognized as a valid Google Maps URL. '
-                        + 'Please use URLs with /maps/search, /maps/place, google.com?cid=number or contact support@apify.com to add a new format');
-                    log.warning(`Happened for provided URL: ${req.url}`);
-                } else {
-                    const isPlace = [REGEXES.PLACE_URL_NORMAL, REGEXES.PLACE_URL_CID]
-                        .some((regex) => regex.test(req.url));
-                    // Only correct URL formats work properly (have JSON data)
-                    if (REGEXES.PLACE_URL_NORMAL.test(req.url)) {
-                        req.url = normalizePlaceUrl(req.url);
-                    }
-                    startRequests.push({
-                        ...req,
-                        userData: { label: isPlace ? 'detail' : 'startUrl', searchString: null, baseUrl: req.url },
-                    });
-                }
-            }
+            const updatedStartUrls = await parseRequestsFromStartUrls(startUrls);
+            const validStartRequests = getValidStartRequests(updatedStartUrls);
+            validStartRequests.forEach((req) => startRequests.push(req));
+            
         } else if (searchStringsArray) {
             for (const searchString of searchStringsArray) {
                 // Sometimes users accidentally pass empty strings
