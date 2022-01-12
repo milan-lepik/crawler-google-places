@@ -70,7 +70,7 @@ const convertGoogleSheetsUrlToCsvDownload = (sheetUrl) => {
  */
 const fetchRowsFromCsvFile = async (downloadUrl) => {    
     const { body } = await utils.requestAsBrowser({ url: downloadUrl});
-    const rows = body.replace(/\"/g, '').split('\n');
+    const rows = body.replace(/[";]/g, '').split('\n');
 
     return Array.from(new Set(rows));
 }
