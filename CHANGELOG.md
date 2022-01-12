@@ -1,8 +1,11 @@
-# 2021-01-11
+# 2021-01-12
+- Start URLs now correctly work from uploaded CSV files or Google Sheets. It uses to trim part of the URL.
+
+# 2022-01-11
 - Changed `polygon` input field to `customGeolocation`
 - Added deeper section into Reamde on how you can provide your own exact coordinates
 
-# 2021-01-11
+# 2022-01-11
 *Breaking changes*
 We decided it is time to change several default parameters to make the user experience smoother. These changes should not have a big effect on currect users.
 
