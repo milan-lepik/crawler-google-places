@@ -80,16 +80,6 @@ const fetchRowsFromCsvFile = async (downloadUrl) => {
  * @param {string} fileUrl
  * @returns {boolean}
  */
-const isCsvFile = (fileUrl) => {
-    const csvSuffixMatches = fileUrl.match(/.csv$/g);
-    return csvSuffixMatches?.length === 1;
-};
-
-/**
- *
- * @param {string} fileUrl
- * @returns {boolean}
- */
  const isGoogleSpreadsheetFile = (fileUrl) => {
     const googleSpreadsheetMatches = fileUrl.match(/docs.google.com\/spreadsheets/g);
     return googleSpreadsheetMatches?.length === 1;
@@ -103,11 +93,16 @@ const parseStartUrlsFromFile = async (fileUrl) => {
     /** @type {string[]} */
     let startUrls = [];
 
-    if (isCsvFile(fileUrl)) {
-        startUrls = await fetchRowsFromCsvFile(fileUrl);
-    } else if (isGoogleSpreadsheetFile(fileUrl)) {
+    if (isGoogleSpreadsheetFile(fileUrl)) {
         const dowloadUrl = convertGoogleSheetsUrlToCsvDownload(fileUrl);
-        startUrls = dowloadUrl ? await fetchRowsFromCsvFile(dowloadUrl) : [];
+        if (dowloadUrl) {
+            startUrls = await fetchRowsFromCsvFile(dowloadUrl)
+        } else {
+            log.warning(`WRONG INPUT: Google Sheets URL cannot be converted to CSV. `)
+        }
+    } else {
+        // We assume it is some text file
+        startUrls = await fetchRowsFromCsvFile(fileUrl);
     }
 
     const trimmedStartUrls = startUrls.map((url) => url.trim());
