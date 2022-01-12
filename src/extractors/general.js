@@ -126,7 +126,7 @@ module.exports.extractPageData = async ({ page, jsonData }) => {
             title: $(placeTitleSel).text().trim(),
             subTitle: $('section-hero-header-title-subtitle').first().text().trim() || null,
             price: $("span[aria-label^='Price: ']").text().trim() || null,
-            menu: $("button[aria-label='Menu']").text().replaceAll('Menu','').trim() || null,
+            menu: $("button[aria-label='Menu']").text().replace(/Menu/g,'').trim() || null,
             // Getting from JSON now
             // totalScore: $('span.section-star-display').eq(0).text().trim(),
             categoryName: $('[jsaction="pane.rating.category"]').text().trim() || categoryName,
