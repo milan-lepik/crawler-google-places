@@ -49,7 +49,8 @@ module.exports.scrollTo = async (page, selectorToScroll, scrollToHeight) => {
  */
 const convertGoogleSheetsUrlToCsvDownload = (sheetUrl) => {
     const CSV_DOWNLOAD_SUFFIX = 'gviz/tq?tqx=out:csv';
-    const baseUrlMatches = sheetUrl.match(/^.*docs.google.com\/spreadsheets\/d\/.+\//g);
+    // The lazy (+?) regex is important because we don't want to capture other slashes
+    const baseUrlMatches = sheetUrl.match(/^.*docs.google.com\/spreadsheets\/d\/.+?\//g);
 
     if (!baseUrlMatches || baseUrlMatches.length === 0) {
         log.error(`Invalid start url provided (${sheetUrl}).
@@ -59,6 +60,9 @@ const convertGoogleSheetsUrlToCsvDownload = (sheetUrl) => {
     
     const baseUrl = baseUrlMatches[0];
     const downloadRequestUrl = `${baseUrl}${CSV_DOWNLOAD_SUFFIX}`;
+    
+    log.info(`Converting Google Sheets URL to a standardized format. If this doesn't work, please create an issue`);
+    log.info(`${sheetUrl} => ${downloadRequestUrl}`);
 
     return downloadRequestUrl;
 }
