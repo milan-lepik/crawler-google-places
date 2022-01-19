@@ -1,4 +1,4 @@
-# 2021-01-12
+# 2022-01-12
 - Start URLs now correctly work from uploaded CSV files or Google Sheets. It uses to trim part of the URL.
 
 # 2022-01-11
