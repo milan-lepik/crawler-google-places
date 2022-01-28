@@ -1,0 +1,13 @@
+{
+	"fileVersion": 1,
+	"name": "crawler-google-places",
+	"title": "Google Search Scraper",
+	"description": "The N-char description",//N<=200, optional, default ""
+	"version": "0.13",
+	"buildTag": "beta", //optional, default "latest"
+	"environmentVariables": {}, //optional, default {}
+	"dockerfile": "./Dockerfile", //optional, default "./Dockerfile"
+	"readme": "./ACTOR.md", //optional, default "./ACTOR.md"
+	"input":"./input-schema.json",//optional, string nebo object, default {}
+	"output":"./output-schema.json"//optional, string nebo object, default {}
+}

@@ -1,0 +1,22 @@
+{
+    "collections": {
+        "images": {
+            "name": "Google places images",
+            "description": "",
+            "keyPrefix": "images-",
+            "contentTypes": [
+                "image/jpeg",
+                "image/png"
+            ]
+        },
+        "screenshot": {
+            "name": "Google places screenshots",
+            "description": "",
+            "keyPrefix": "screenshot-",
+            "contentTypes": [
+                "image/jpeg",
+                "image/png"
+            ]
+        }
+    }
+}

@@ -1,0 +1,41 @@
+{
+    "fileVersion": 1,
+    "title": "Google places", //generated from output.title
+    "description": "",
+    "output": {
+        "my-dataset": {
+            "type": "dataset",
+            "id": "lkspwWd8dFknjkxx",
+            "title": "Google places", //generated from output.schema.{my-dataset}.schema.title
+            "description": "",
+            "url": "https://api.apify.com/datasets/lkspwWd8dFknjkxx",
+            "schemaUrl": "https://api.apify.com/datasets/lkspwWd8dFknjkxx/output-schema-my-dataset.json",
+            "views": {
+                "places": {
+                    "title": "Google places search results", //generated from output.schema.{my-dataset}.schema.views.{places}.title
+                    "description": "Displays the most important information from collected Google places",
+                    "url": "https://api.apify.com/datasets/lkspwWd8dFknjkxx/?view=places"
+                }
+            }
+        },
+        "my-key-value-store": {
+            "id": "sksowWnsjkwSopjs",
+            "title": "",
+            "description": "",
+            "url": "https://api.apify.com/key-value-stores/sksowWnsjkwSopjs",
+            "schemaUrl": "https://api.apify.com/key-value-stores/sksowWnsjkwSopjs/output-schema-my-kvstore.json",
+            "collections": {
+                "images": {
+                    "name": "Google places images",
+                    "description": "",
+                    "url": "https: //api.apify.com/key-value-stores/sksowWnsjkwSopjs/?collection=images"
+                },
+                "screenshots": {
+                    "name": "Google places screenshots",
+                    "description": "",
+                    "url": "https://api.apify.com/key-value-stores/sksowWnsjkwSopjs/?collection=screenshots"
+                }
+            }
+        }
+    }
+}

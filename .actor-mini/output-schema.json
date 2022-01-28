@@ -1,0 +1,12 @@
+{
+    "schema": {
+        "my-dataset": {
+            "type": "dataset",
+            "schema": "./output-schema-my-dataset.json"
+        },
+        "my-key-value-store": {
+            "type": "key-value-store",
+            "schema": "./output-schema-my-kvstore.json"
+        }
+    }
+}

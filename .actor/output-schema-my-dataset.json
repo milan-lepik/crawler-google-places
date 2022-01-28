@@ -1,0 +1,161 @@
+{
+    "title": "Google places dataset",
+    "description": "",
+    "views": {
+        "places": {
+            "title": "Google places search results",
+            "description": "Displays the most important information from collected Google places",
+            "transformation": {
+                "fields": [
+                    "title",
+                    "categoryName",
+                    "address",
+                    "street",
+                    "city",
+                    "state",
+                    "website",
+                    "phone",
+                    "totalScore",
+                    "reviewsCount"
+                ]
+            },
+            "visualisation": {
+                "component": "table"
+            }
+        }
+    },
+    "fields": {
+        "title": "string",
+        "subTitle": "?string",
+        "price": "string",
+        "menu": "string",
+        "categoryName": "string",
+        "address": "string",
+        "locatedIn": "string",
+        "neighborhood": "string",
+        "street": "string",
+        "city": "string",
+        "postalCode": "string",
+        "state": "string",
+        "countryCode": "?string",
+        "plusCode": "?string",
+        "website": "?string",
+        "phone": "?string",
+        "temporarilyClosed": "boolean",
+        "permanentlyClosed": "boolean",
+        "totalScore": "number",
+        "isAdvertisement": "boolean",
+        "rank": "number",
+        "placeId": "string",
+        "categories": "string[]",
+        "cid": "string",
+        "url": "string",
+        "searchPageUrl": "string",
+        "searchString": "string",
+        "location": [
+            {
+                "lat": {
+                    "type": "number"
+                },
+                "lng": {
+                    "type": "number"
+                }
+            }
+        ],
+        "scrapedAt": "string",
+        "popularTimesLiveText": "string",
+        "popularTimesLivePercent": "string",
+        "popularTimesHistogram": {
+            "Su": [
+                {
+                    "hour": "number",
+                    "occupancyPercent": "number"
+                }
+            ],
+            "Mo": [
+                {
+                    "hour": "number",
+                    "occupancyPercent": "number"
+                }
+            ],
+            "Tu": [
+                {
+                    "hour": "number",
+                    "occupancyPercent": "number"
+                }
+            ],
+            "We": [
+                {
+                    "hour": "number",
+                    "occupancyPercent": "number"
+                }
+            ],
+            "Th": [
+                {
+                    "hour": "number",
+                    "occupancyPercent": "number"
+                }
+            ],
+            "Fr": [
+                {
+                    "hour": "number",
+                    "occupancyPercent": "number"
+                }
+            ],
+            "Sa": [
+                {
+                    "hour": "number",
+                    "occupancyPercent": "number"
+                }
+            ]
+        },
+        "openingHours": [
+            {
+                "day": "string",
+                "hours": "string"
+            }
+        ],
+        "peopleAlsoSearch": "string[]",
+        "additionalInfo": "?object",
+        "reviewsCount": "number",
+        "reviewsDistribution": {
+            "type": "object",
+            "required": [],
+            "properties": {
+                "oneStar": {
+                    "type": "integer"
+                },
+                "twoStar": {
+                    "type": "integer"
+                },
+                "threeStar": {
+                    "type": "integer"
+                },
+                "fourStar": {
+                    "type": "integer"
+                },
+                "fiveStar": {
+                    "type": "integer"
+                }
+            },
+            "additionalProperties": true
+        },
+        "imageUrls": "string[]",
+        "reviews": [
+            {
+                "name": "string",
+                "text": "string",
+                "publishAt": "string",
+                "publishedAtDate": "string",
+                "likesCount": "number",
+                "reviewId": "string",
+                "reviewUrl": "string",
+                "reviewerId": "string",
+                "reviewerUrl": "string",
+                "reviewerNumberOfReviews": "number",
+                "isLocalGuide": "boolean",
+                "stars": "number"
+            }
+        ]
+    }
+}

@@ -1,0 +1,8 @@
+{
+	"fileVersion": 1,
+	"name": "crawler-google-places",
+	"title": "Google Search Scraper",
+	"version": "0.13",
+	"input": "./input-schema.json",
+	"output": "./output-schema.json"
+}

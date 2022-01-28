@@ -1,0 +1,8 @@
+{
+    "fields": {
+        "title": "string",
+        "categoryName": "string",
+        "city": "string",
+        "totalScore": "number"
+    }
+}

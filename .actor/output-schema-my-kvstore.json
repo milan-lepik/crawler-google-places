@@ -1,0 +1,24 @@
+{
+    "title": "Google places KeyValueStore",
+    "description": "",
+    "collections": {
+        "images": {
+            "title": "Google places images",
+            "description": "",
+            "keyPrefix": "images-",
+            "contentTypes": [
+                "image/jpeg",
+                "image/png"
+            ]
+        },
+        "screenshot": {
+            "title": "Google places screenshots",
+            "description": "",
+            "keyPrefix": "screenshot-",
+            "contentTypes": [
+                "image/jpeg",
+                "image/png"
+            ]
+        }
+    }
+}

@@ -1,0 +1,25 @@
+{
+    // "fileType": "actor-output-schema", is determined by tree location reference in actor.json/schema.output 
+    // "fileVersion": 1, is determined by tree location reference in actor.json
+    "title": "", //optional, default ""
+    "description": "", //optional, default ""
+    "schema": {    // the first record is default
+        "my-dataset": { // user can choose any other name
+            "type": "dataset",
+            "schema": "./output-schema-my-dataset.json", //string(path to file) or object
+            "views": [ //optional, default views:[all views in schema]
+                "places"
+            ],
+            "target": "default" //optional, default: "target":"default"
+        },
+        "my-key-value-store": { // user can choose any other name
+            "type": "key-value-store",
+            "schema": "./output-schema-my-kvstore.json",
+            "collections": [ //optional, default views:[all views in schema]
+                "images",
+                "screenshots"
+            ],
+            "target": "default" //optional, "target":"default"
+        }
+    }
+}
