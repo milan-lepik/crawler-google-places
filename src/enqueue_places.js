@@ -225,7 +225,18 @@ module.exports.enqueueAllPlaceDetails = async ({
     }
 
     await sleep(5000);
-    await page.click('#searchbox-searchbutton');
+    try {
+        await page.click('#searchbox-searchbutton');
+    } catch (e) {
+        log.warning(`click#searchbox-searchbutton ${e?.message}`);
+        try {
+            const retryClickSearchButton = await page.$('#searchbox-searchbutton');
+            await retryClickSearchButton.evaluate(b => b.click());
+        } catch (eOnRetry) {
+            log.warning(`retryClickSearchButton ${eOnRetry?.message}`);
+            await page.keyboard.press('Enter');
+        }
+    }
     await sleep(5000);
     await waitForGoogleMapLoader(page);
 
