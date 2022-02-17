@@ -381,6 +381,9 @@
             "title": "Proxy configuration",
             "type": "object",
             "description": "You need to use Apify proxy or custom proxies. Automatic proxy works very well for Google Maps.",
+            "default": {
+                "useApifyProxy": true
+            },
             "prefill": {
                 "useApifyProxy": true
             },
