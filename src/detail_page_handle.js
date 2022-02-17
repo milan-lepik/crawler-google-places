@@ -170,7 +170,7 @@ module.exports.handlePlaceDetail = async (options) => {
         location: coordinates, // keeping backwards compatible even though coordinates is better name
         scrapedAt: new Date().toISOString(),
         ...includeHistogram ? extractPopularTimes({ jsonData }) : {},
-        openingHours: includeOpeningHours ? await extractOpeningHours({ page }) : undefined,
+        openingHours: includeOpeningHours ? await extractOpeningHours({ page, jsonData }) : undefined,
         peopleAlsoSearch: includePeopleAlsoSearch ? await extractPeopleAlsoSearch({ page }) : undefined,
         additionalInfo: additionalInfo ? await extractAdditionalInfo({ page, placeUrl: url }) : undefined,
         reviewsCount,

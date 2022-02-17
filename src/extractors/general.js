@@ -190,10 +190,19 @@ module.exports.extractPopularTimes = ({ jsonData }) => {
 
 /**
  * @param {{
- *    page: Puppeteer.Page
+ *    page: Puppeteer.Page,
+ *    jsonData: any
  * }} options
  */
-module.exports.extractOpeningHours = async ({ page }) => {
+module.exports.extractOpeningHours = async ({ page, jsonData }) => {
+    if (jsonData?.[34]?.[1]?.[0] && jsonData?.[34]?.[1]?.[1]) {
+        return jsonData[34][1].map((/** @type {any[]} */ entry) => ({
+            // adding a "," to make it consistent to extracting data from the DOM (old format)
+            day: `${entry[0]},`,
+            // replace "–" by " to " to make it consistent to extracting data from the DOM
+            hours: entry[1].map((/** @type {string} */ hourInterval) => hourInterval.replace("–", " to ")).join(", ")
+        }));
+    }
     let result;
     const openingHoursSel = '.section-open-hours-container.section-open-hours-container-hoverable';
     const openingHoursSelAlt = '.section-open-hours-container.section-open-hours';
