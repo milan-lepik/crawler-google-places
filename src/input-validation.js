@@ -76,8 +76,8 @@ module.exports.validateInput = (input) => {
     // Proxy is mandatory only on Apify
     if (Apify.isAtHome()) {
         // @ts-ignore
-        if (!proxyConfig || !(proxyConfig.useApifyProxy || proxyConfig.proxyUrls)) {
-            throw 'You have to use Apify proxy or custom proxies when running on Apify platform!';
+        if (!proxyConfig || (!proxyConfig.useApifyProxy && !proxyConfig.proxyUrls?.length)) {
+           throw 'You have to use Apify proxy or custom proxies when running on Apify platform!';
         }
         if (proxyConfig.apifyProxyGroups
             && (proxyConfig.apifyProxyGroups.includes('GOOGLESERP') || proxyConfig.apifyProxyGroups.includes('GOOGLE_SERP'))) {
