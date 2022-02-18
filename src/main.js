@@ -20,7 +20,7 @@ const { log } = Apify.utils;
 // We had to do few ugly things because of that but hopefully it is worth it.
 
 Apify.main(async () => {
-    const input = /** @type {typedefs.Input} */ (await Apify.getValue('INPUT'));
+    const input = /** @type {typedefs.Input} */ (await Apify.getInput());
 
     makeInputBackwardsCompatible(input);
     validateInput(input);
