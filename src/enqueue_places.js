@@ -75,7 +75,7 @@ const enqueuePlacesFromResponse = (options) => {
             }
             if (exportPlaceUrls) {
                 if (!maxCrawledPlacesTracker.canScrapeMore()) {
-                    return;
+                    return { isDataPage: true, enqueued } ;
                 }
                 const shouldScrapeMore = maxCrawledPlacesTracker.setScraped();
                 const wasAlreadyPushed = exportUrlsDeduper?.testDuplicateAndAdd(placePaginationData.placeId);
@@ -89,7 +89,7 @@ const enqueuePlacesFromResponse = (options) => {
                         // + `currently: ${maxCrawledPlacesTracker.enqueuedPerSearch[searchKey]}(for this search)/${maxCrawledPlacesTracker.enqueuedTotal}(total) `
                         + `--- ${searchString} - ${request.url}`);
                     await crawler.autoscaledPool?.abort();
-                    return;
+                    return { isDataPage: true, enqueued } ;
                 }
             } else {                   
                 const searchKey = searchString || request.url;
