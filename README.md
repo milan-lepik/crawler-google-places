@@ -205,6 +205,8 @@ The Apify platform allows you to choose from many dataset formats, but also to r
 
 Normally, each result item contains data about a single place. Each item is displayed as one row in tabulated formats. There is a lot of data about each place, so the tabulated formats get very messy and hard to analyze. Fortunately, there is a solution.
 
+You can tick on the `oneReviewPerRow` input option to get one review per row as output. If you already have a dataset and need to adjust its format, read further.
+
 For example, if you need to analyze reviews, you can configure the download to only contain the data you need and adjust the row/column format. Here's how to get a list of reviews with a place title one review per row: copy the download link in the format you need, paste it to a different tab, and add  `&unwind=reviews&fields=reviews,title`  to the end of the link URL, and then press Enter to download it.  `unwind=reviews`  means that each review will be on its own row.  `fields=reviews,title`  means that only reviews and title will be downloaded, skipping the other data. Otherwise, the output would be very big, but it's also no problem if you don't use  `fields`  at all.
 
 The whole download link for, e.g. CSV would look like this (with dataset ID):[https://api.apify.com/v2/datasets/DATASET_ID/items?clean=true&format=csv&attachment=true&unwind=reviews&fields=reviews,title](https://api.apify.com/v2/datasets/dataset_id/items?clean=true&format=csv&attachment=true&unwind=reviews&fields=reviews,title)
