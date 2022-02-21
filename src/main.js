@@ -41,7 +41,7 @@ Apify.main(async () => {
         includeHistogram = false, includeOpeningHours = false, includePeopleAlsoSearch = false,
         maxReviews = 0, maxImages = 1, exportPlaceUrls = false, additionalInfo = false,
         maxCrawledPlaces = 99999999, maxCrawledPlacesPerSearch = maxCrawledPlaces,
-        maxAutomaticZoomOut, reviewsTranslation = 'originalAndTranslated',
+        maxAutomaticZoomOut, reviewsTranslation = 'originalAndTranslated', oneReviewPerRow = false,
         // For some rare places, Google doesn't show all reviews unles in newest sorting
         reviewsSort = 'newest',
         // Fields used by Heyrick only, not present in the schema (too narrow use-case for now)
@@ -249,7 +249,7 @@ Apify.main(async () => {
         maxReviews, maxImages, exportPlaceUrls, additionalInfo,
         maxAutomaticZoomOut, reviewsSort, language,
         geolocation, reviewsTranslation,
-        personalDataOptions,
+        personalDataOptions, oneReviewPerRow,
     };
 
     /** @type {typedefs.HelperClasses} */

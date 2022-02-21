@@ -36,6 +36,7 @@ module.exports.handlePlaceDetail = async (options) => {
     const {
         includeHistogram, includeOpeningHours, includePeopleAlsoSearch,
         maxReviews, maxImages, additionalInfo, reviewsSort, reviewsTranslation,
+        oneReviewPerRow,
     } = scrapingOptions;
     // Extract basic information
     await waitForGoogleMapLoader(page);
@@ -205,9 +206,22 @@ module.exports.handlePlaceDetail = async (options) => {
         ),
         orderBy,
     };
-
     
-    await Apify.pushData(detail);
+    if (oneReviewPerRow) {
+        const unwoundResults = [];
+        if (detail.reviews.length === 0) {
+            // Removing reviews array from output
+            unwoundResults.push({ ...detail, reviews: undefined });
+        } else {
+            for (const review of detail.reviews) {
+                unwoundResults.push({ ...detail, ...review, reviews: undefined });
+            }
+        }
+        await Apify.pushData(unwoundResults);
+    } else {
+        await Apify.pushData(detail);
+    }
+    
     stats.places();
     log.info(`[PLACE]: Place scraped successfully --- ${url}`);
     const shouldScrapeMore = maxCrawledPlacesTracker.setScraped();

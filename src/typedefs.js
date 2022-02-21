@@ -34,6 +34,7 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * @property {Geolocation | undefined} geolocation
  * @property {string} reviewsTranslation
  * @property {PersonalDataOptions} personalDataOptions
+ * @property {boolean} oneReviewPerRow
  */
 
 /**

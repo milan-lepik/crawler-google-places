@@ -225,6 +225,12 @@
             "description": "Extract additional information about each place, e.g. Service Options, Highlights, Offerings, etc. You can speed up crawling if you disable this.",
             "default": false
         },
+        "oneReviewPerRow": {
+            "title": "One review per row",
+            "type": "boolean",
+            "description": "If checked, the scraper will produce one row of results per each review. The information about the place is copied to each row.",
+            "default": false
+        },
         "maxImages": {
             "title": "Number of images (Slow for more than 1)",
             "type": "integer",
