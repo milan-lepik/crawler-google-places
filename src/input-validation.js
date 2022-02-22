@@ -56,8 +56,9 @@ module.exports.makeInputBackwardsCompatible = (input) => {
     }
     
     // Changed 2022-01
-    if (input.polygon && input.polygon.geoJson) {
-        input.customGeolocation = input.polygon.geoJson;
+    if (input.polygon && input.polygon.geojson) {
+        log.warning('INPUT DEPRECATION: polygon field has been deprecated and will be removed soon! Please use customGeolocation instead. Check Readme for a new format');
+        input.customGeolocation = input.polygon.geojson;
     }
 };
 
