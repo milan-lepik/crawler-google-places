@@ -140,6 +140,7 @@ module.exports.extractPageData = async ({ page, jsonData }) => {
             phone: phone || phoneAlt || null,
             // Wasn't able to find this in the JSON
             temporarilyClosed: $('#pane').text().includes('Temporarily closed'),
+            location: jsonResult.coords,
         };
     }, PLACE_TITLE_SEL, jsonResult || {});
 };
