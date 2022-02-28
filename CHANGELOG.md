@@ -1,3 +1,7 @@
+# 2022-02-28
+*Fixes*
+- `location` extraction works in (almost) all cases now (search URLs and URLs with place IDs will always work).
+
 # 2020-02-21
 *Features*
 - Added `oneReviewPerRow` to input to enable expanding reviews one per output row
