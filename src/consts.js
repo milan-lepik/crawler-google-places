@@ -19,7 +19,7 @@ exports.GEO_TO_DEFAULT_ZOOM = {
     country: 12,
     state: 12,
     county: 14,
-    city: 17,
-    postalCode: 18,
+    city: 15,
+    postalCode: 16,
     default: 12,
 }

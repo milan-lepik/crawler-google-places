@@ -1,3 +1,11 @@
+# 2020-03-03
+- Lowering the default zoom values. The past setup made the scraping too slow and costly. The new defaults will speed up the scraping a lot while missing only a few places. You can still manually override the `zoom` parameter. New default values are:
+`country` or `state` -> 12
+`county` -> 14
+`city` -> 15
+`postalCode` -> 16
+no geolocation -> 12
+
 # 2020-02-21
 *Features*
 - Added `oneReviewPerRow` to input to enable expanding reviews one per output row
