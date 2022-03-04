@@ -1,4 +1,10 @@
-# 2020-03-03
+# 2022-03-04
+*Improvement*
+- `additionalInfo` extraction is faster now.
+- `additionalInfo` extraction for hotels and similar categories is more complete now:
+Data which is not displayed on the Google page but present in the Google response is also extracted.
+
+# 2022-03-03
 - Lowering the default zoom values. The past setup made the scraping too slow and costly. The new defaults will speed up the scraping a lot while missing only a few places. You can still manually override the `zoom` parameter. New default values are:
 `country` or `state` -> 12
 `county` -> 14
@@ -10,7 +16,7 @@ no geolocation -> 12
 *Fixes*
 - `location` extraction works in (almost) all cases now (search URLs and URLs with place IDs will always work).
 
-# 2020-02-21
+# 2022-02-21
 *Features*
 - Added `oneReviewPerRow` to input to enable expanding reviews one per output row
 
