@@ -192,7 +192,7 @@ module.exports.extractPopularTimes = ({ jsonData }) => {
 /**
  * @param {{
  *    page: Puppeteer.Page,
- *    jsonData: any
+ *    jsonData: any[]
  * }} options
  */
 module.exports.extractOpeningHours = async ({ page, jsonData }) => {
@@ -278,11 +278,21 @@ module.exports.extractPeopleAlsoSearch = async ({ page }) => {
  * @param {{
  *    page: Puppeteer.Page
  *    placeUrl: string,
+ *    jsonData: any[]
  * }} options
  */
-module.exports.extractAdditionalInfo = async ({ page, placeUrl }) => {
-    let result;
+module.exports.extractAdditionalInfo = async ({ page, placeUrl, jsonData }) => {
     log.debug('[PLACE]: Scraping additional info.');
+    let result;
+    try {
+        result = extractAdditionalInfoFromJson({ jsonData });
+    } catch (/** @type any */ err) {
+        log.warning(`[PLACE]: Couldn't extract additionalInfo from jsonData: ${err.message}; page: ${placeUrl}`);
+    }
+    if (result) {
+        log.info(`[PLACE]: Additional info scraped from jsonData for page: ${placeUrl}`);
+        return result;
+    }
     await page.waitForSelector('button[jsaction*="pane.attributes.expand"]', { timeout: 5000 }).catch(() => {});
     const button = await page.$('button[jsaction*="pane.attributes.expand"]');
     if (button) {
@@ -310,6 +320,11 @@ module.exports.extractAdditionalInfo = async ({ page, placeUrl }) => {
                 });
                 return innerResult;
             });
+            if (result && Object.keys(result).length > 0) {
+                log.info(`[PLACE]: Additional info scraped from HTML for page: ${placeUrl}`);
+            } else {
+                log.info(`[PLACE]: Empty additional info section for page: ${placeUrl}`);
+            }
         } catch (e) {
             log.info(`[PLACE]: ${e}Additional info not parsed`);
         } finally {
@@ -339,6 +354,7 @@ module.exports.extractAdditionalInfo = async ({ page, placeUrl }) => {
             for (let name of hotel_disabled_amenities) {
                 values.push({[name]: false})
             }
+            log.info(`[PLACE]: Additional info (Amenities) scraped from HTML for page: ${placeUrl}`);
             return { "Amenities": values };
         } else {
             log.warning(`Didn't find additional data, skipping - ${page.url()}`);
@@ -346,3 +362,120 @@ module.exports.extractAdditionalInfo = async ({ page, placeUrl }) => {
     }
     return result;
 };
+
+/**
+ * Extracts additional infos for hotels and other categories according to the passed jsonData.
+ * 
+ * Note: For hotels the jsonData often contains more infos than the Google-Maps page. 
+ * For some other places sometimes also additionInfos are in jsonData but not displayed on the page.
+ * It never seems to be the other way around.
+ * 
+ * @param {{
+ *    jsonData: any[]
+ * }} options
+ * @return {Object | undefined} additional infos stored in jsonData, undefined if jsonData doesn't contain additional infos.
+ * @throws {TypeError} if jsonData can't be parsed properly
+ */
+const extractAdditionalInfoFromJson = ({ jsonData }) => {
+    // additional info for categories != hotel
+    const resultBasic = extractAdditionalInfoBasicFromJson({ jsonData });
+    // hotel amenities
+    const resultHotel = extractHotelAmenitiesFromJson({ jsonData });
+    if (resultBasic && resultHotel) {
+        // @ts-ignore
+        if (resultBasic?.Amenities) {
+            // @ts-ignore
+            resultBasic.Amenities = [...resultBasic.Amenities, ...resultHotel.Amenities]
+            return resultBasic;
+        }
+        return { ...resultBasic, ...resultHotel }
+    }
+    return resultBasic ? resultBasic : resultHotel;
+}
+
+/**
+ * Extracts additional infos which are visible for Google categories != hotel
+ * 
+ * @param {{
+ *    jsonData: any[]
+ * }} options
+ * @return {Object | undefined} additional infos stored in jsonData, undefined if jsonData doesn't contain basic additional infos.
+ * @throws {TypeError} if jsonData can't be parsed properly
+ */
+const extractAdditionalInfoBasicFromJson = ({ jsonData }) => {
+    if (!jsonData?.[100]) {
+        return undefined;
+    }
+    if (!jsonData[100][1]?.[0]?.[1]
+        || !Array.isArray(jsonData[100][1]?.[0]?.[2])) {
+        throw new TypeError("wrong format");
+    }
+    const result = {}
+    for (const section of jsonData[100][1]) {
+        // @ts-ignore
+        result[section[1]] = section[2].flatMap(option => {
+            // @ts-ignore
+            if (typeof option?.[1] !== 'string') {
+                throw new TypeError("wrong format for option name");
+            } 
+            if (typeof option?.[2]?.[2]?.[0] === 'number'){
+                return { [option[1]]: option[2][2][0] == 1 }
+            } 
+            // accepted types of credit cards are listed in JSON 
+            // (although the Google Maps Frontend doesn't show the specific types)
+            if (option?.[0] === "/geo/type/establishment_poi/pay_credit_card_types_accepted") {
+                const acceptedCards = option?.[2]?.[4]?.[1]?.[0]?.[0]
+                if (Array.isArray(acceptedCards)) {
+                    const firstCard = acceptedCards?.[0]
+                    // each card is stored in an array with >= 4 elements
+                    return { [option[1]]: Array.isArray(firstCard) && firstCard.length >= 4 }
+                } else {
+                    throw new TypeError(`${option[1]}: wrong format for accepted cards`);
+                }
+            }
+            // wifi options are sometimes listed in JSON
+            if (option?.[0] === "/geo/type/establishment_poi/wi_fi") {
+                if (!Array.isArray(option?.[2]?.[3])) {
+                    throw new TypeError(`wrong format for wifi options`);
+                }
+                const wifiOptions = option?.[2].slice(3)
+                return wifiOptions.map((/** @type {any[]} */ wifiOption) => {
+                    if(typeof wifiOption?.[2] != "string") {
+                        throw new TypeError(`wrong format for wifi option`);
+                    }
+                    return {[wifiOption[2]]: true}
+                });
+            }
+            throw new TypeError(`${option[1]}: wrong format for option value`);
+        });
+    };
+    return result;
+}
+
+/**
+ * Extracts the hotel details from the passed jsonData.
+ * The return value will have the key "Amenities" to make it consistent to the old scraping from HTML.
+ * 
+ * @param {{
+ *    jsonData: any[]
+ * }} options
+ * @return {{Amenities:any[]} | undefined} hotel details (Amenities) stored in jsonData or undefined if jsonData doesn't contain hotel details.
+ * @throws {TypeError} if jsonData can't be parsed properly
+ */
+const extractHotelAmenitiesFromJson = ({ jsonData }) => {
+    // When Google doesn't display amenities, mostly jsonData[64] is null but
+    // sometimes jsonData[64] also has a non-nested array with mostly nulls in it.
+    // -> !jsonData?.[64] wouldn't be sufficient here
+    if (!jsonData?.[64]?.[2]?.[0]) {
+        return undefined;
+    }
+    if (!jsonData[64][2][0][2]
+        || typeof jsonData[64][2][0][3] != 'number') {
+        throw new TypeError("wrong format for hotel amenities");
+    }
+    return {
+        "Amenities": jsonData[64][2].map((/** @type {any[]} */ option) => ({
+            [option[2]]: option[3] == 1
+        }))
+    };
+}

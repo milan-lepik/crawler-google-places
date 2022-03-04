@@ -174,7 +174,7 @@ module.exports.handlePlaceDetail = async (options) => {
         ...includeHistogram ? extractPopularTimes({ jsonData }) : {},
         openingHours: includeOpeningHours ? await extractOpeningHours({ page, jsonData }) : undefined,
         peopleAlsoSearch: includePeopleAlsoSearch ? await extractPeopleAlsoSearch({ page }) : undefined,
-        additionalInfo: additionalInfo ? await extractAdditionalInfo({ page, placeUrl: url }) : undefined,
+        additionalInfo: additionalInfo ? await extractAdditionalInfo({ page, placeUrl: url, jsonData }) : undefined,
         reviewsCount,
         reviewsDistribution,
         // IMPORTANT: The order of actions image -> reviews is important
