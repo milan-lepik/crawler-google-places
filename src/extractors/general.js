@@ -320,7 +320,11 @@ module.exports.extractAdditionalInfo = async ({ page, placeUrl, jsonData }) => {
                 });
                 return innerResult;
             });
-            log.info(`[PLACE]: Additional info scraped from HTML for page: ${placeUrl}`);
+            if (result && Object.keys(result).length > 0) {
+                log.info(`[PLACE]: Additional info scraped from HTML for page: ${placeUrl}`);
+            } else {
+                log.info(`[PLACE]: Empty additional info section for page: ${placeUrl}`);
+            }
         } catch (e) {
             log.info(`[PLACE]: ${e}Additional info not parsed`);
         } finally {
