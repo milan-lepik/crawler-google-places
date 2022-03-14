@@ -1,3 +1,6 @@
+# 2020-03-14
+- Added `allPlacesNoSearch` to input. This option allows you to scrape all places shown on the map without need for any search term.
+
 # 2020-03-03
 - Lowering the default zoom values. The past setup made the scraping too slow and costly. The new defaults will speed up the scraping a lot while missing only a few places. You can still manually override the `zoom` parameter. New default values are:
 `country` or `state` -> 12

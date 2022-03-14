@@ -25,6 +25,38 @@ module.exports.waitForGoogleMapLoader = async (page) => {
 module.exports.fixFloatNumber = (float) => Number(float.toFixed(7));
 
 /**
+ * TODO: Add more cases
+ * @param {Puppeteer.Page} page 
+ */
+module.exports.moveMouseThroughPage = async (page, pageStats) => {
+    const { width, height } = page.viewport();
+    // If you move with less granularity, places are missed
+    const plannedMoves = [];
+    for (let y = 0; y < height; y += 10) {
+        for (let x = 0; x < width; x += 10) {
+            plannedMoves.push({ x, y });
+        }
+    }
+    log.info(`[SEARCH]: Starting moving mouse over the map to gather all places. Will do ${plannedMoves.length} mouse moves. This might take a few minutes: ${page.url()}`);
+    let done = 0;
+    for (const { x, y } of plannedMoves) {
+        if (done === 50) {
+            // dismiss covid warning panel
+            try {
+                await page.click('button[aria-label*="Dismiss"]')
+            } catch (e) {
+                
+            }
+        }
+        if (done !== 0 && done % 500 === 0) {
+            log.info(`[SEARCH]: Mouse moves still in progress: ${done}/${plannedMoves.length}. Enqueued so far: ${pageStats.enqueued} --- ${page.url()}`);
+        }
+        await page.mouse.move(x, y, { steps: 5 });
+        done++;
+    }
+}
+
+/**
  * Method scrolls page to xpos, ypos.
  * @param {Puppeteer.Page} page
  * @param {string} selectorToScroll

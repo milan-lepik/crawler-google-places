@@ -19,6 +19,12 @@
                 "restaurant New York"
             ]
         },
+        "allPlacesNoSearch": {
+            "title": "Scrape all places (no search term)",
+            "type": "boolean",
+            "description": "Will scrape all places seen on the map. This depends on a lot of the zoom so for more places, increase the zoom. Doesn't work together with URLs",
+            "default": false
+        },
         "maxCrawledPlaces": {
             "title": "Max crawled places",
             "type": "integer",

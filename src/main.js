@@ -27,7 +27,7 @@ Apify.main(async () => {
 
     const {
         // Search and Start URLs
-        startUrls, searchStringsArray,
+        startUrls, searchStringsArray = [], allPlacesNoSearch = false,
         // Geolocation
         lat, lng, country, state, county, city, postalCode, zoom, customGeolocation,
         // browser and request options
@@ -104,10 +104,18 @@ Apify.main(async () => {
         }));
     }
 
+    if (allPlacesNoSearch) {
+        if (searchStringsArray?.length > 0) {
+            log.warning(`You cannot use search terms with allPlacesNoSearch option. Clearing them out.`)
+            searchStringsArray.length = 0;
+        }
+        searchStringsArray?.push('all_places_no_search');
+    }
+
     if (startRequests.length === 0) {
         // Start URLs have higher preference than search
         if (Array.isArray(startUrls) && startUrls.length > 0) {
-            if (searchStringsArray) {
+            if (searchStringsArray?.length) {
                 log.warning('\n\n------\nUsing Start URLs disables search. You can use either search or Start URLs.\n------\n');
             }
             // Apify has a tendency to strip part of URL for uniqueKey for Google Maps URLs
@@ -116,7 +124,7 @@ Apify.main(async () => {
             const validStartRequests = getValidStartRequests(updatedStartUrls);
             validStartRequests.forEach((req) => startRequests.push(req));
             
-        } else if (searchStringsArray) {
+        } else if (searchStringsArray?.length) {
             for (const searchString of searchStringsArray) {
                 // Sometimes users accidentally pass empty strings
                 if (typeof searchString !== 'string' || !searchString.trim()) {
@@ -249,7 +257,7 @@ Apify.main(async () => {
         maxReviews, maxImages, exportPlaceUrls, additionalInfo,
         maxAutomaticZoomOut, reviewsSort, language,
         geolocation, reviewsTranslation,
-        personalDataOptions, oneReviewPerRow,
+        personalDataOptions, oneReviewPerRow, allPlacesNoSearch,
     };
 
     /** @type {typedefs.HelperClasses} */

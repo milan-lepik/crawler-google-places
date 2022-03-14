@@ -35,6 +35,7 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * @property {string} reviewsTranslation
  * @property {PersonalDataOptions} personalDataOptions
  * @property {boolean} oneReviewPerRow
+ * @property {boolean} allPlacesNoSearch
  */
 
 /**
@@ -56,6 +57,7 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * Options you can pass to the actor run
  * @typedef Input
  * @property {Apify.RequestOptions[]} [startUrls]
+ * @property {boolean} allPlacesNoSearch
  * @property {string[]} [searchStringsArray]
  * @property {string} [lat]
  * @property {string} [lng]
