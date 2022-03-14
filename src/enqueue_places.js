@@ -11,7 +11,7 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
 
 const { sleep, log } = Apify.utils;
 const { PLACE_TITLE_SEL, NEXT_BUTTON_SELECTOR, NO_RESULT_XPATH } = require('./consts');
-const { waitForGoogleMapLoader, parseZoomFromUrl } = require('./utils');
+const { waitForGoogleMapLoader, parseZoomFromUrl, moveMouseThroughPage } = require('./utils');
 const { parseSearchPlacesResponseBody } = require('./extractors/general');
 const { checkInPolygon } = require('./polygon');
 
@@ -38,12 +38,15 @@ const CHECK_LOAD_OUTCOMES_EVERY_MS = 500;
 const enqueuePlacesFromResponse = (options) => {
     const { page, requestQueue, searchString, request, exportPlaceUrls, geolocation,
         placesCache, stats, maxCrawledPlacesTracker, exportUrlsDeduper, crawler } = options;
-    return async (response) => {
+    return async (response, pageStats) => {
         const url = response.url();
         const isSearchPage = url.match(/google\.[a-z.]+\/search/);
-        if (!isSearchPage) {
-            return { isDataPage: false };
+        const isDetailPreviewPage = url.match(/google\.[a-z.]+\/maps\/preview\/place/)
+        if (!isSearchPage && !isDetailPreviewPage) {
+            return;
         }
+
+        pageStats.isDataPage = true;
         
         // Parse page number from request url
         const queryParams = querystring.parse(url.split('?')[1]);
@@ -51,12 +54,12 @@ const enqueuePlacesFromResponse = (options) => {
         const pageNumber = parseInt(queryParams.ech, 10);
         // Parse place ids from response body
         const responseBody = await response.buffer();
-        const placesPaginationData = parseSearchPlacesResponseBody(responseBody);
+        const placesPaginationData = parseSearchPlacesResponseBody(responseBody, isDetailPreviewPage);
         let index = -1;
-        let enqueued = 0;
         // At this point, page URL should be resolved
         const searchPageUrl = page.url();
 
+        pageStats.found += placesPaginationData.length;
         for (const placePaginationData of placesPaginationData) {
             index++;
             const rank = ((pageNumber - 1) * 20) + (index + 1);
@@ -75,7 +78,7 @@ const enqueuePlacesFromResponse = (options) => {
             }
             if (exportPlaceUrls) {
                 if (!maxCrawledPlacesTracker.canScrapeMore()) {
-                    return { isDataPage: true, enqueued } ;
+                    break;
                 }
                 const shouldScrapeMore = maxCrawledPlacesTracker.setScraped();
                 const wasAlreadyPushed = exportUrlsDeduper?.testDuplicateAndAdd(placePaginationData.placeId);
@@ -89,7 +92,7 @@ const enqueuePlacesFromResponse = (options) => {
                         // + `currently: ${maxCrawledPlacesTracker.enqueuedPerSearch[searchKey]}(for this search)/${maxCrawledPlacesTracker.enqueuedTotal}(total) `
                         + `--- ${searchString} - ${request.url}`);
                     await crawler.autoscaledPool?.abort();
-                    return { isDataPage: true, enqueued } ;
+                    break;
                 }
             } else {                   
                 const searchKey = searchString || request.url;
@@ -115,17 +118,19 @@ const enqueuePlacesFromResponse = (options) => {
                     },
                     { forefront: true });
                 if (!wasAlreadyPresent) {
-                    enqueued++;
+                    pageStats.enqueued++;
                 } else {
-                    log.warning(`Google presented already enqueued place, skipping... --- ${placeUrl}`)
+                    // log.warning(`Google presented already enqueued place, skipping... --- ${placeUrl}`)
                     maxCrawledPlacesTracker.enqueuedTotal--;
                     maxCrawledPlacesTracker.enqueuedPerSearch[searchKey]--;
                 }
             }
         }
         const numberOfAds = placesPaginationData.filter((item) => item.isAdvertisement).length;
-        log.info(`[SEARCH]: Enqueued ${enqueued}/${placesPaginationData.length} places (correct location/total) + ${numberOfAds} ads --- ${page.url()}`)
-        return { isDataPage: true, enqueued } 
+        // Detail preview page goes one by one so should be logged after
+        if (isSearchPage) {
+            log.info(`[SEARCH]: Enqueued ${pageStats.enqueued}/${pageStats.found} places (correct location/total) + ${numberOfAds} ads --- ${page.url()}`)
+        }
     };
 };
 
@@ -213,10 +218,19 @@ module.exports.enqueueAllPlaceDetails = async ({
         crawler,
     });
 
+    const pageStats = { isDataPage: false, enqueued: 0, found: 0 }
+    
     page.on('response', async (response) => {
-        const { isDataPage, enqueued } = await responseHandler(response);
-        if (isDataPage && enqueued === 0) { numberOfEmptyDataPages += 1; }
+        await responseHandler(response, pageStats);
+        if (pageStats.isDataPage && pageStats.enqueued === 0) { numberOfEmptyDataPages += 1; }
     });
+
+    // Special case that works completely differently
+    if (searchString === 'all_places_no_search') {
+        await moveMouseThroughPage(page, pageStats);
+        log.info(`[SEARCH]: Mouse moving finished, enqueued ${pageStats.enqueued}/${pageStats.found} out of found: ${page.url()}`)
+        return;
+    }
 
     // there is no searchString when startUrls are used
     if (searchString) {

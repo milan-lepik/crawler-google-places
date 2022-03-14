@@ -52,11 +52,26 @@ const parseJsonResult = (placeData, isAdvertisement) => {
  * Response from google xhr is kind a weird. Mix of array of array.
  * This function parse places from the response body.
  * @param {Buffer} responseBodyBuffer
+ * @param {boolean} isAllPacesNoSearch
  * @return {PlacePaginationData[]}
  */
- module.exports.parseSearchPlacesResponseBody = (responseBodyBuffer) => {
+ module.exports.parseSearchPlacesResponseBody = (responseBodyBuffer, isAllPacesNoSearch) => {
     /** @type {PlacePaginationData[]} */
     const placePaginationData = [];
+
+    if (isAllPacesNoSearch) {
+        const jsonString = responseBodyBuffer
+            .toString('utf-8')
+            .replace(")]}'", '');
+        const data = JSON.parse(jsonString);
+        const placeData = parseJsonResult(data[6], false);
+        if (placeData) {
+            placePaginationData.push(placeData)
+        } else {
+            log.warning(`[SEARCH]: Cannot find place data while browsing with mouse over displayed places.`)
+        }
+        return placePaginationData;
+    }
     const jsonString = responseBodyBuffer
         .toString('utf-8')
         .replace('/*""*/', '');

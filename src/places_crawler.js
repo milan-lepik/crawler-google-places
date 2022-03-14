@@ -100,7 +100,7 @@ const handlePageFunctionExtended = async ({ pageContext, scrapingOptions, helper
  * }} options
  */
 module.exports.setUpCrawler = ({ crawlerOptions, scrapingOptions, helperClasses }) => {
-    const { maxImages, language } = scrapingOptions;
+    const { maxImages, language, allPlacesNoSearch } = scrapingOptions;
     const { pageLoadTimeoutSec, ...options } = crawlerOptions;
     const { stats, errorSnapshotter } = helperClasses;
     return new Apify.PuppeteerCrawler({
@@ -117,12 +117,14 @@ module.exports.setUpCrawler = ({ crawlerOptions, scrapingOptions, helperClasses 
             */
             // @ts-ignore
             await page._client.send('Emulation.clearDeviceMetricsOverride');
+            
             // This blocks images so we have to skip it
-            if (!maxImages) {
+            if (!maxImages && !allPlacesNoSearch) {
                 await blockRequests(page, {
                     urlPatterns: ['/maps/vt/', '/earth/BulkMetadata/', 'googleusercontent.com'],
                 });
             }
+            
             const mapUrl = new URL(request.url);
 
             if (language) {
@@ -131,6 +133,7 @@ module.exports.setUpCrawler = ({ crawlerOptions, scrapingOptions, helperClasses 
 
             request.url = mapUrl.toString();
 
+            // This was setup by Jir Lafek (zzbazza) to work with geolocation splitting
             await page.setViewport({ width: 800, height: 800 });
 
             // Handle consent screen, it takes time before the iframe loads so we need to update userData

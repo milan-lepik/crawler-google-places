@@ -1,3 +1,6 @@
+# 2020-03-14
+- Added `allPlacesNoSearch` to input. This option allows you to scrape all places shown on the map without need for any search term.
+
 # 2022-03-04
 *Improvement*
 - `additionalInfo` extraction is faster now.
