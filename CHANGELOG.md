@@ -1,6 +1,7 @@
 # 2020-03-14
 - Added `allPlacesNoSearch` to input. This option allows you to scrape all places shown on the map without the need for any search term.
 - Added `reviewsStartDate` to input to extract only reviews newer than this date.
+- Added `radiusKm` to the `Point` type in `customGeolocation`
 
 # 2022-03-04
 *Improvement*

@@ -224,10 +224,12 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * geojson parameter from nomatim
  * coordinates have different shape depending on type
  * geometry is only available in few shapes
+ * radiusKm is purely our addition for a Point type (circle)
  * @typedef {{
  *   type: string,
  *   coordinates: any,
  *   geometry: any,
+ *   radiusKm: number | undefined,
  * }} Geolocation
  */
 

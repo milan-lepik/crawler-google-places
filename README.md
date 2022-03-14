@@ -311,6 +311,17 @@ Multi polygon can combine more polygons that are not continuous together.
 
 ```
 
+### Circle
+For a circle, we can use the `Point` type with our custom parameter `radiusKm`.
+
+```json
+{
+    "type": "Point",
+    "coordinates": ["47.5590", "7.5503"],
+    "radiusKm": 1
+}
+```
+
 ## Personal data
 
 Reviews can contain personal data such as a name, profile image, and even a review ID that could be used to track down the reviewer. Personal data is protected by GDPR in the European Union and by other regulations around the world. You should not scrape personal data unless you have a legitimate reason to do so. If you're unsure whether your reason is legitimate, consult your lawyers. This scraper allows you to granularly select which personal data fields you want to extract from reviews and which not. You can read the basics of ethical web scraping in our blogpost on the  [legality of web scraping](https://blog.apify.com/is-web-scraping-legal/).

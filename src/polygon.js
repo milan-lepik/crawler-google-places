@@ -55,10 +55,9 @@ module.exports.checkInPolygon = (geolocation, coordinates) => {
 
 /**
  * @param {typedefs.Geolocation} geolocation
- * @param {number | undefined} distanceKilometers
  */
-function getPolygons(geolocation, distanceKilometers = 5) {
-    const { coordinates, type, geometry } = geolocation;
+function getPolygons(geolocation, ) {
+    const { coordinates, type, geometry, radiusKm = 5 } = geolocation;
     if (type === GEO_TYPES.POLYGON) {
         return [turf.polygon(coordinates)];
     }
@@ -69,7 +68,7 @@ function getPolygons(geolocation, distanceKilometers = 5) {
 
     // We got only the point for city, lets create a circle...
     if (type === GEO_TYPES.POINT) {
-        return [turf.circle(coordinates, distanceKilometers, { units: TURF_UNIT })];
+        return [turf.circle(coordinates, radiusKm, { units: TURF_UNIT })];
     }
 
     // Line (road or street) - find midpoint and length and create circle
@@ -173,7 +172,7 @@ module.exports.findPointsInPolygon = async (geolocation, zoom) => {
         });
     }
     try {
-        const polygons = getPolygons(geolocation, 5);
+        const polygons = getPolygons(geolocation);
 
         polygons.forEach((polygon) => {
             const bbox = turf.bbox(polygon);
