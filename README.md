@@ -317,7 +317,7 @@ For a circle, we can use the `Point` type with our custom parameter `radiusKm`.
 ```json
 {
     "type": "Point",
-    "coordinates": ["47.5590", "7.5503"],
+    "coordinates": ["7.5503", "47.5590"],
     "radiusKm": 1
 }
 ```
