@@ -251,6 +251,12 @@
             "prefill": 0,
             "unit": "reviews per place"
         },
+        "reviewsStartDate": {
+            "title": "Reviews start date (scrape only newer than)",
+            "type": "string",
+            "description": "Format should be YYYY-MM-DD, e.g. 2022-02-20",
+            "editor": "textfield"
+        },
         "reviewsSort": {
             "title": "Sort reviews by",
             "description": "Define how reviews should be sorted.",

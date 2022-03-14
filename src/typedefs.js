@@ -36,6 +36,7 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * @property {PersonalDataOptions} personalDataOptions
  * @property {boolean} oneReviewPerRow
  * @property {boolean} allPlacesNoSearch
+ * @property {string} reviewsStartDate
  */
 
 /**
@@ -100,6 +101,8 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * @property {boolean} scrapeReviewId
  * @property {boolean} scrapeReviewUrl
  * @property {boolean} scrapeResponseFromOwnerText
+ * @property {boolean} oneReviewPerRow
+ * @property {string} reviewsStartDate
  */
 
 /**

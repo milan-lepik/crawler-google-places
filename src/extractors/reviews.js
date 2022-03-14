@@ -125,18 +125,21 @@ const { log, sleep } = Apify.utils;
  *    reviewsTranslation: string,
  *    defaultReviewsJson: any,
  *    personalDataOptions: PersonalDataOptions,
+ *    reviewsStartDate: string,
  * }} options
  * @returns {Promise<Review[]>}
  */
-module.exports.extractReviews = async ({ page, reviewsCount, request,
+module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsStartDate,
     targetReviewsCount, reviewsSort, reviewsTranslation, defaultReviewsJson, personalDataOptions }) => {
 
-    /** Returned at the last line @type {Review[]} */
+    /** @type {Review[]} */
     let reviews = [];
 
     if (targetReviewsCount === 0) {
         return [];
     }
+
+    const reviewsStartDateAsDate = reviewsStartDate ? new Date(reviewsStartDate) : null;
 
     // If we already have all reviews from the page as default ones, we can finish
     // Just need to sort appropriately manually
@@ -235,7 +238,7 @@ module.exports.extractReviews = async ({ page, reviewsCount, request,
                 const response = await fetch(url);
                 return response.text();
             }, reviewUrl);
-            const { currentReviews, error } = parseReviewFromResponseBody(responseBody, reviewsTranslation);
+            const { currentReviews = [], error } = parseReviewFromResponseBody(responseBody, reviewsTranslation);
             if (error) {
                 // This means that invalid response were returned
                 // I think can happen if the review count changes
@@ -248,13 +251,23 @@ module.exports.extractReviews = async ({ page, reviewsCount, request,
                 break;
             }
             reviews.push(...currentReviews);
-            reviews = reviews.slice(0, targetReviewsCount);
+            let stopDateReached = false;
+            for (const review of currentReviews) {
+                if (reviewsStartDateAsDate && new Date(review.publishedAtDate) < reviewsStartDateAsDate) {
+                    stopDateReached = true;
+                    break;
+                }
+            }
+            if (stopDateReached) {
+                log.info(`[PLACE]: Extracting reviews stopping: Reached review older than ${reviewsStartDate} --- ${page.url()} `);
+                break;
+            }
             log.info(`[PLACE]: Extracting reviews: ${reviews.length}/${reviewsCount} --- ${page.url()}`);
             reviewUrl = increaseLimitInUrl(reviewUrl);
         }
         // NOTE: Sometimes for unknown reason, Google gives less reviews and in different order
         // TODO: Find a cause!!! All requests URLs look the same otherwise
-        if (reviews.length < targetReviewsCount) {
+        if (!reviewsStartDateAsDate && reviews.length < targetReviewsCount) {
             // MOTE: We don't want to get into infinite loop or fail the request completely
             if (request.retryCount < 2) {
                 throw `Google served us less reviews than it should (${reviews.length}/${targetReviewsCount}). Retrying the whole page`;
@@ -266,6 +279,8 @@ module.exports.extractReviews = async ({ page, reviewsCount, request,
         // Clicking on the back button using navigateBack function here is infamously buggy
         // So we just do reviews as last everytime
     }
-    reviews = reviews.slice(0, targetReviewsCount);
+    reviews = reviews
+        .slice(0, targetReviewsCount)
+        .filter((review) => !reviewsStartDateAsDate || new Date(review.publishedAtDate) > reviewsStartDateAsDate)
     return removePersonalDataFromReviews(reviews, personalDataOptions);
 };

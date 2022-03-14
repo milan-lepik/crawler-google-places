@@ -36,7 +36,7 @@ module.exports.handlePlaceDetail = async (options) => {
     const {
         includeHistogram, includeOpeningHours, includePeopleAlsoSearch,
         maxReviews, maxImages, additionalInfo, reviewsSort, reviewsTranslation,
-        oneReviewPerRow,
+        oneReviewPerRow, reviewsStartDate,
     } = scrapingOptions;
     // Extract basic information
     await waitForGoogleMapLoader(page);
@@ -201,7 +201,8 @@ module.exports.handlePlaceDetail = async (options) => {
                 reviewsSort,
                 reviewsTranslation,
                 defaultReviewsJson,
-                personalDataOptions: scrapingOptions.personalDataOptions
+                personalDataOptions: scrapingOptions.personalDataOptions,
+                reviewsStartDate,
             }),
             { name: 'Reviews extraction' },
         ),

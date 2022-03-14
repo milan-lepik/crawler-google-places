@@ -65,6 +65,14 @@ module.exports.makeInputBackwardsCompatible = (input) => {
 // First we deprecate and re-map old values and then we validate
 /** @param {typedefs.Input} input */
 module.exports.validateInput = (input) => {
+    if (input.reviewsStartDate && !new Date(input.reviewsStartDate)) {
+        throw new Error(`WRONG INPUT: ${input.reviewsStartDate} is not a valid date format. Use YYYY-MM-DD`);
+    }
+
+    if (input.reviewsStartDate && input.reviewsSort && input.reviewsSort !== 'newest') {
+        log.warning(`WRONG INPUT: If reviewsStartDate is present, reviewsSort must be newest. Setting it up.`);
+    }
+
     if (!input.searchStringsArray && !input.startUrls && !input.allPlacesNoSearch) {
         throw 'You have to provide startUrls or searchStringsArray in input!';
     }
