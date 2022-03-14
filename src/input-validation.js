@@ -65,7 +65,7 @@ module.exports.makeInputBackwardsCompatible = (input) => {
 // First we deprecate and re-map old values and then we validate
 /** @param {typedefs.Input} input */
 module.exports.validateInput = (input) => {
-    if (!input.searchStringsArray && !input.startUrls) {
+    if (!input.searchStringsArray && !input.startUrls && !input.allPlacesNoSearch) {
         throw 'You have to provide startUrls or searchStringsArray in input!';
     }
 
