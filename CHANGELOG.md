@@ -1,4 +1,9 @@
+# 2020-03-16
+*Fixes*
+- `maxCrawledPlaces` + `exportPlaceUrls` was giving inconsistent number of results.
+
 # 2020-03-14
+*Features*
 - Added `allPlacesNoSearch` to input. This option allows you to scrape all places shown on the map without the need for any search term.
 - Added `reviewsStartDate` to input to extract only reviews newer than this date.
 - Added `radiusKm` to the `Point` type in `customGeolocation`

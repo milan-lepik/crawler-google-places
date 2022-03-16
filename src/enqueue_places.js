@@ -80,9 +80,11 @@ const enqueuePlacesFromResponse = (options) => {
                 if (!maxCrawledPlacesTracker.canScrapeMore()) {
                     break;
                 }
-                const shouldScrapeMore = maxCrawledPlacesTracker.setScraped();
+                
                 const wasAlreadyPushed = exportUrlsDeduper?.testDuplicateAndAdd(placePaginationData.placeId);
+                let shouldScrapeMore = true;
                 if (!wasAlreadyPushed) {
+                    shouldScrapeMore = maxCrawledPlacesTracker.setScraped();
                     await Apify.pushData({
                         url: `https://www.google.com/maps/search/?api=1&query=${searchString}&query_place_id=${placePaginationData.placeId}`,
                     });
@@ -91,6 +93,8 @@ const enqueuePlacesFromResponse = (options) => {
                     log.warning(`[SEARCH]: Finishing scraping because we reached maxCrawledPlaces `
                         // + `currently: ${maxCrawledPlacesTracker.enqueuedPerSearch[searchKey]}(for this search)/${maxCrawledPlacesTracker.enqueuedTotal}(total) `
                         + `--- ${searchString} - ${request.url}`);
+                    // We need to wait a bit so the pages got processed and data pushed
+                    await page.waitForTimeout(5000);
                     await crawler.autoscaledPool?.abort();
                     break;
                 }
