@@ -1,0 +1,15 @@
+{
+	"actorSpecification": 1,
+	"name": "crawler-google-places",
+	"title": "Google Search Scraper",
+	"description": "", //N<=200, optional, default ""
+	"version": "0.0.14",
+	"buildTag": "beta", //optional, default "latest"
+	"environmentVariables": {}, //optional, default {}
+	"dockerfile": "./Dockerfile", //optional, default "./Dockerfile"
+	"readme": "./ACTOR.md", //optional, default "./ACTOR.md"
+	"output": "./output-schema.json", //optional, string nebo object, default {}
+	"storages": {
+		"dataset": "dataset-schema.json"
+	}
+}

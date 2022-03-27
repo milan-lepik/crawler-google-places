@@ -1,0 +1,14 @@
+{
+    "actorSpecification": 1,
+    "title": "", //optional, default ""
+    "description": "", //optional, default ""
+    "properties": { // the first record is default
+        "dataset-places": { // user can choose any other name
+            "title": "", //optional, default ""
+            "type": "dataset",
+            "views": [
+                "places"
+            ]
+        }
+    }
+}
