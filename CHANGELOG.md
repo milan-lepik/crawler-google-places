@@ -3,6 +3,7 @@
 - Blocked responses on the search page now properly retry the request (no more unhandled promise rejection)
 - Smoother search page pagination
 - More informative logs
+- Fixed consent approval if browser crashes
 
 # 2022-03-16
 *Fixes*

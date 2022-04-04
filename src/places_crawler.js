@@ -142,16 +142,22 @@ module.exports.setUpCrawler = ({ crawlerOptions, scrapingOptions, helperClasses 
             // Handle consent screen, it takes time before the iframe loads so we need to update userData
             // and block handlePageFunction from continuing until we click on that
             page.on('response', async (res) => {
-                if (res.url().match(/consent\.google\.[a-z.]+\/(?:intro|m\?)/)) {
-                    log.warning('Consent screen loading, we need to approve first!');
-                    // @ts-ignore
-                    request.userData.waitingForConsent = true;
-                    await page.waitForTimeout(5000);
-                    const { persistCookiesPerSession } = options;
-                    await waitAndHandleConsentScreen(page, request.url, persistCookiesPerSession, session);
-                    // @ts-ignore
-                    request.userData.waitingForConsent = false;
-                    log.warning('Consent screen approved! We can continue scraping');
+                try {
+                    if (res.url().match(/consent\.google\.[a-z.]+\/(?:intro|m\?)/)) {
+                        log.warning('Consent screen loading, we need to approve first!');
+                        // @ts-ignore
+                        request.userData.waitingForConsent = true;
+                        await page.waitForTimeout(5000);
+                        const { persistCookiesPerSession } = options;
+                        await waitAndHandleConsentScreen(page, request.url, persistCookiesPerSession, session);
+                        // @ts-ignore
+                        request.userData.waitingForConsent = false;
+                        log.warning('Consent screen approved! We can continue scraping');
+                    }
+                } catch (err) {
+                    // We have to catch this if browser randomly crashes
+                    // This will now timeout in the handlePageFunction and retry from there
+                    log.warning(`Error while waiting for consent screen: ${err}`);
                 }
             });
 
