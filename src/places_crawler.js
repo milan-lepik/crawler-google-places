@@ -136,6 +136,9 @@ module.exports.setUpCrawler = ({ crawlerOptions, scrapingOptions, helperClasses 
             // This was setup by Jir Lafek (zzbazza) to work with geolocation splitting
             await page.setViewport({ width: 800, height: 800 });
 
+            // We must reset this if we crash and retry in the middle of consent approval
+            request.userData.waitingForConsent = undefined;
+
             // Handle consent screen, it takes time before the iframe loads so we need to update userData
             // and block handlePageFunction from continuing until we click on that
             page.on('response', async (res) => {
