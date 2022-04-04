@@ -122,7 +122,7 @@ module.exports = class MaxCrawledPlacesTracker {
     async persist() {
         await Apify.setValue(
             MAX_CRAWLED_PLACES_STATE_RECORD_NAME,
-            { enqueuedTotal: this.enqueuedTotal, enqueuedPerSearch: this.enqueuedPerSearch }
+            { enqueuedTotal: this.enqueuedTotal, enqueuedPerSearch: this.enqueuedPerSearch, scrapedTotal: this.scrapedTotal, scrapedPerSearch: this.scrapedPerSearch }
         );
     }
 }
