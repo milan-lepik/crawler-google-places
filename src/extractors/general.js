@@ -51,61 +51,75 @@ const parseJsonResult = (placeData, isAdvertisement) => {
 /**
  * Response from google xhr is kind a weird. Mix of array of array.
  * This function parse places from the response body.
- * @param {Buffer} responseBodyBuffer
+ * @param {string} responseBodyText
  * @param {boolean} isAllPacesNoSearch
- * @return {PlacePaginationData[]}
+ * @return {{ placesPaginationData: PlacePaginationData[], error: string | null }}
  */
- module.exports.parseSearchPlacesResponseBody = (responseBodyBuffer, isAllPacesNoSearch) => {
+ module.exports.parseSearchPlacesResponseBody = (responseBodyText, isAllPacesNoSearch) => {
     /** @type {PlacePaginationData[]} */
-    const placePaginationData = [];
+    const placesPaginationData = [];
 
-    if (isAllPacesNoSearch) {
-        const jsonString = responseBodyBuffer
-            .toString('utf-8')
-            .replace(")]}'", '');
-        const data = JSON.parse(jsonString);
-        const placeData = parseJsonResult(data[6], false);
-        if (placeData) {
-            placePaginationData.push(placeData)
-        } else {
-            log.warning(`[SEARCH]: Cannot find place data while browsing with mouse over displayed places.`)
-        }
-        return placePaginationData;
+    const replaceString = isAllPacesNoSearch ? ")]}'" : '/*""*/';
+
+    const jsonString = responseBodyText
+        .replace(replaceString, '');
+    let jsonObject;
+    try {
+        jsonObject = JSON.parse(jsonString);
+    } catch (e) {
+        return {
+            placesPaginationData,
+            error: 'Response body doesn\'t contain a valid JSON',
+        };
     }
-    const jsonString = responseBodyBuffer
-        .toString('utf-8')
-        .replace('/*""*/', '');
-    const jsonObject = JSON.parse(jsonString);
-    const data = stringifyGoogleXrhResponse(jsonObject.d);
 
-    // We are paring ads but seems Google is not showing them to the scraper right now
-    const ads = (data[2] && data[2][1] && data[2][1][0]) || [];
-
-    ads.forEach((/** @type {any} */ ad) => {
-        const placeData = parseJsonResult(ad[15], true);
-        if (placeData) {
-            placePaginationData.push(placeData);
-        } else {
-            log.warning(`[SEARCH]: Cannot find place data for advertisement in search.`)
+    // TODO: Maybe split this into more try/catches
+    try {
+        if (isAllPacesNoSearch) {
+            const placeData = parseJsonResult(jsonObject[6], false);
+            if (placeData) {
+                placesPaginationData.push(placeData)
+            } else {
+                log.warning(`[SEARCH]: Cannot find place data while browsing with mouse over displayed places.`)
+            }
+            return { placesPaginationData, error: null };
         }
-    })
+        const data = stringifyGoogleXrhResponse(jsonObject.d);
 
-    /** @type {any} Too complex to type out*/
-    let organicResults = data[0][1];
-    // If the search goes to search results, the first one is not a place
-    // If the search goes to a place directly, the first one is that place
-    if (organicResults.length > 1) {
-        organicResults = organicResults.slice(1)
+        // We are paring ads but seems Google is not showing them to the scraper right now
+        const ads = (data[2] && data[2][1] && data[2][1][0]) || [];
+
+        ads.forEach((/** @type {any} */ ad) => {
+            const placeData = parseJsonResult(ad[15], true);
+            if (placeData) {
+                placesPaginationData.push(placeData);
+            } else {
+                log.warning(`[SEARCH]: Cannot find place data for advertisement in search.`)
+            }
+        })
+
+        /** @type {any} Too complex to type out*/
+        let organicResults = data[0][1];
+        // If the search goes to search results, the first one is not a place
+        // If the search goes to a place directly, the first one is that place
+        if (organicResults.length > 1) {
+            organicResults = organicResults.slice(1)
+        }
+        organicResults.forEach((/** @type {any} */ result ) => {
+            const placeData = parseJsonResult(result[14], false);
+            if (placeData) {
+                placesPaginationData.push(placeData);
+            } else {
+                log.warning(`[SEARCH]: Cannot find place data in search.`)
+            }
+        });
+    } catch (e) {
+        return {
+            placesPaginationData,
+            error: `Failed parsing JSON response: ${e.message}`,
+        };
     }
-    organicResults.forEach((/** @type {any} */ result ) => {
-        const placeData = parseJsonResult(result[14], false);
-        if (placeData) {
-            placePaginationData.push(placeData);
-        } else {
-            log.warning(`[SEARCH]: Cannot find place data in search.`)
-        }
-    });
-    return placePaginationData;
+    return { placesPaginationData, error: null };
 };
 
 

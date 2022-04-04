@@ -1,8 +1,14 @@
-# 2020-03-16
+# 2022-04-04
+*Fixes*
+- Blocked responses on the search page now properly retry the request (no more unhandled promise rejection)
+- Smoother search page pagination
+- More informative logs
+
+# 2022-03-16
 *Fixes*
 - `maxCrawledPlaces` + `exportPlaceUrls` was giving inconsistent number of results.
 
-# 2020-03-14
+# 2022-03-14
 *Features*
 - Added `allPlacesNoSearch` to input. This option allows you to scrape all places shown on the map without the need for any search term.
 - Added `reviewsStartDate` to input to extract only reviews newer than this date.
