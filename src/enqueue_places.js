@@ -40,21 +40,23 @@ const enqueuePlacesFromResponse = (options) => {
         placesCache, stats, maxCrawledPlacesTracker, exportUrlsDeduper, crawler } = options;
     return async (response, pageStats) => {
         const url = response.url();
-            const isSearchPage = url.match(/google\.[a-z.]+\/search/);
-            const isDetailPreviewPage = url.match(/google\.[a-z.]+\/maps\/preview\/place/)
-            if (!isSearchPage && !isDetailPreviewPage) {
-                return;
-            }
+        const isSearchPage = url.match(/google\.[a-z.]+\/search/);
+        const isDetailPreviewPage = url.match(/google\.[a-z.]+\/maps\/preview\/place/);
+        if (!isSearchPage && !isDetailPreviewPage) {
+            return;
+        }
+
+        let responseBody;
+        let responseStatus;
 
         pageStats.isDataPage = true;
 
-        const responseStatus = response.status();
-        if (responseStatus !== 200) {
-            log.warning(`Response status is not 200, it is ${responseStatus}. This might mean the response is blocked`);
-        }
-        const responseBody = await response.text();
-
         try {
+            responseStatus = response.status();
+            if (responseStatus !== 200) {
+                log.warning(`Response status is not 200, it is ${responseStatus}. This might mean the response is blocked`);
+            }
+            responseBody = await response.text();
             const { placesPaginationData, error } = parseSearchPlacesResponseBody(responseBody, isDetailPreviewPage);
             if (error) {
                 // This way we pass the error to the synchronous context where we can throw to retry
