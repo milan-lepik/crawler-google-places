@@ -43,10 +43,11 @@ module.exports.fixFloatNumber = (float) => Number(float.toFixed(7));
         const rndX = 8 + Math.ceil(Math.random() + 8);
         const rndY = 8 + Math.ceil(Math.random() + 8);
         return {
-            x: coords?.x + rndX,
-            y: coords?.y + rndY,
+            x: coords?.x + 10,
+            y: coords?.y + 10,
         }
     });
+    return positionsFromActor;
     // for each original position add extra points at left and right
     const pinPositions = [];
     for (const pos of positionsFromActor) {
@@ -83,8 +84,12 @@ module.exports.moveMouseThroughPage = async (page, pageStats, ocrCoordinates) =>
             log.info(`[SEARCH]: Mouse moves still in progress: ${done}/${plannedMoves.length}. Enqueued so far: ${pageStats.enqueued} --- ${page.url()}`);
         }
         await page.mouse.move(x, y, { steps: 5 });
-        // add delay for processing OCR, otherwise places might be missed because mouse moved too fast
+        // mouse trick for processing OCR, otherwise places might be missed because mouse moved too fast
         if (ocrCoordinates?.length) {
+            await Apify.utils.sleep(1000);
+            await page.mouse.move(x + 4, y + 4, { steps: 5 });
+            await Apify.utils.sleep(1000);
+            await page.mouse.move(0, 0, { steps: 5 });
             await Apify.utils.sleep(1000);
         }
         done++;
