@@ -11,7 +11,7 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
 
 const { sleep, log } = Apify.utils;
 const { PLACE_TITLE_SEL, NEXT_BUTTON_SELECTOR, NO_RESULT_XPATH } = require('./consts');
-const { waitForGoogleMapLoader, parseZoomFromUrl, moveMouseThroughPage } = require('./utils');
+const { waitForGoogleMapLoader, parseZoomFromUrl, moveMouseThroughPage, getImagePinsFromExternalActor } = require('./utils');
 const { parseSearchPlacesResponseBody } = require('./extractors/general');
 const { checkInPolygon } = require('./polygon');
 
@@ -264,6 +264,7 @@ module.exports.enqueueAllPlaceDetails = async ({
 
     // Special case that works completely differently
     if (searchString === 'all_places_no_search') {
+        const pinPositions = await getImagePinsFromExternalActor(page);
         await moveMouseThroughPage(page, pageStats);
         log.info(`[SEARCH]: Mouse moving finished, enqueued ${pageStats.enqueued}/${pageStats.found} out of found: ${page.url()}`)
         return;

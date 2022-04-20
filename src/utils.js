@@ -25,12 +25,36 @@ module.exports.waitForGoogleMapLoader = async (page) => {
 module.exports.fixFloatNumber = (float) => Number(float.toFixed(7));
 
 /**
+ * @param {Puppeteer.Page} page 
+ */
+ module.exports.getImagePinsFromExternalActor = async (page) => {
+    const dataImage = await page.evaluate(() => {
+        const canvas = document.querySelector('canvas');
+        return canvas?.toDataURL();
+    });
+    const dataImagePrefix = 'data:image/png;base64,';
+    const base64data = dataImage?.substr(dataImagePrefix.length);
+    const buffer = new Buffer(base64data, 'base64');
+    await Apify.setValue('testImage', buffer, { contentType: 'image/png' });
+    const plannedMoves = [];
+    return plannedMoves;
+}
+
+/**
  * TODO: Add more cases
  * @param {Puppeteer.Page} page 
  */
 module.exports.moveMouseThroughPage = async (page, pageStats) => {
     const { width, height } = page.viewport();
     // If you move with less granularity, places are missed
+    const dataImage = await page.evaluate(() => {
+        const canvas = document.querySelector('canvas');
+        return canvas.toDataURL();
+    });
+    const dataImagePrefix = 'data:image/png;base64,';
+    const base64data = dataImage.substr(dataImagePrefix.length);
+    const buffer = new Buffer(base64data, 'base64');
+    await Apify.setValue('testImage', buffer, { contentType: 'image/png' });
     const plannedMoves = [];
     for (let y = 0; y < height; y += 10) {
         for (let x = 0; x < width; x += 10) {
@@ -38,6 +62,7 @@ module.exports.moveMouseThroughPage = async (page, pageStats) => {
         }
     }
     log.info(`[SEARCH]: Starting moving mouse over the map to gather all places. Will do ${plannedMoves.length} mouse moves. This might take a few minutes: ${page.url()}`);
+    log.warning(`dataImage ${width} x ${height} as ${dataImage.length}`);
     let done = 0;
     for (const { x, y } of plannedMoves) {
         if (done === 50) {
