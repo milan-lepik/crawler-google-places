@@ -38,6 +38,8 @@ module.exports.fixFloatNumber = (float) => Number(float.toFixed(7));
     const base64data = dataImage?.substr(dataImagePrefix.length);
     const buffer = new Buffer(base64data, 'base64');
     await Apify.setValue('testImage', buffer, { contentType: 'image/png' });
+    const screenshot = await page.screenshot();
+    await Apify.setValue('screenshot', screenshot, { contentType: 'image/png' });
     const plannedMoves = [];
     return plannedMoves;
 }
