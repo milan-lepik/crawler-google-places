@@ -28,6 +28,8 @@ module.exports.fixFloatNumber = (float) => Number(float.toFixed(7));
  * @param {Puppeteer.Page} page 
  */
  module.exports.getImagePinsFromExternalActor = async (page) => {
+    await page.waitForSelector('canvas');
+    await Apify.utils.sleep(10000);
     const dataImage = await page.evaluate(() => {
         const canvas = document.querySelector('canvas');
         return canvas?.toDataURL();

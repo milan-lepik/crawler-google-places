@@ -264,7 +264,6 @@ module.exports.enqueueAllPlaceDetails = async ({
 
     // Special case that works completely differently
     if (searchString === 'all_places_no_search') {
-        await Apify.utils.sleep(10000);
         const pinPositions = await getImagePinsFromExternalActor(page);
         await moveMouseThroughPage(page, pageStats);
         log.info(`[SEARCH]: Mouse moving finished, enqueued ${pageStats.enqueued}/${pageStats.found} out of found: ${page.url()}`)
