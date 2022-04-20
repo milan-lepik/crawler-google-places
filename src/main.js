@@ -257,7 +257,7 @@ Apify.main(async () => {
         maxReviews, maxImages, exportPlaceUrls, additionalInfo,
         maxAutomaticZoomOut, reviewsSort, language, reviewsStartDate,
         geolocation, reviewsTranslation,
-        personalDataOptions, oneReviewPerRow, allPlacesNoSearch, allPlacesNoSearchAction,
+        personalDataOptions, oneReviewPerRow, allPlacesNoSearch
     };
 
     /** @type {typedefs.HelperClasses} */

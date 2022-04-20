@@ -51,7 +51,7 @@ module.exports.handlePlaceDetail = async (options) => {
         await page.waitForSelector(PLACE_TITLE_SEL, { timeout: DEFAULT_TIMEOUT });
     } catch (e) {
         session.markBad();
-        throw 'The page didn\'t load fast enough, this will be retried';
+        throw 'The page header didn\'t load fast enough, this will be retried';
     }
 
     // Add info from listing page

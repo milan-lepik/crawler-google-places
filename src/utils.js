@@ -38,26 +38,14 @@ module.exports.fixFloatNumber = (float) => Number(float.toFixed(7));
     const externalDataset = await Apify.openDataset(ocrActorRun.defaultDatasetId, { forceCloud: true });
     const externalTAData = await externalDataset.getData({ clean: true });
     log.info(`[OCR]: Found ${externalTAData.items.length} pin(s)`);
-    // recalculate coordinates around pin center (current pin is 20x20px)
+    // recalculate coordinates to pin center (current pin is 20x20px)
     const positionsFromActor = externalTAData.items.map((/** @type { any } */coords) => {
-        const rndX = 8 + Math.ceil(Math.random() + 8);
-        const rndY = 8 + Math.ceil(Math.random() + 8);
         return {
             x: coords?.x + 10,
             y: coords?.y + 10,
         }
     });
     return positionsFromActor;
-    // for each original position add extra points at left and right
-    const pinPositions = [];
-    for (const pos of positionsFromActor) {
-        pinPositions.push({ x: pos?.x - 10, y: pos?.y - 10 });
-        pinPositions.push({ x: pos?.x - 5, y: pos?.y - 5 });
-        pinPositions.push(pos);
-        pinPositions.push({ x: pos?.x + 5, y: pos?.y + 5 });
-        pinPositions.push({ x: pos?.x + 10, y: pos?.y + 10 });
-    }
-    return pinPositions;
 }
 
 /**
@@ -86,9 +74,13 @@ module.exports.moveMouseThroughPage = async (page, pageStats, ocrCoordinates) =>
         await page.mouse.move(x, y, { steps: 5 });
         // mouse trick for processing OCR, otherwise places might be missed because mouse moved too fast
         if (ocrCoordinates?.length) {
+            // wait for place detection
             await Apify.utils.sleep(1000);
+            // move a bit and wait again
             await page.mouse.move(x + 4, y + 4, { steps: 5 });
             await Apify.utils.sleep(1000);
+            // go back to top left corner to hide popup with preview
+            // otherwise it might overlap with places nearby and prevent them from detection
             await page.mouse.move(0, 0, { steps: 5 });
             await Apify.utils.sleep(1000);
         }
