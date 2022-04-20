@@ -38,9 +38,9 @@
             ],
             "type": "string",
             "editor": "select",
-            "default": "en",
-            "example": "en",
-            "prefill": "en"
+            "default": "mouse",
+            "example": "mouse",
+            "prefill": "mouse"
         },
         "maxCrawledPlaces": {
             "title": "Max crawled places",
