@@ -27,7 +27,7 @@ Apify.main(async () => {
 
     const {
         // Search and Start URLs
-        startUrls, searchStringsArray = [], allPlacesNoSearch = false,
+        startUrls, searchStringsArray = [], allPlacesNoSearch = false, allPlacesNoSearchAction = '',
         // Geolocation
         lat, lng, country, state, county, city, postalCode, zoom, customGeolocation,
         // browser and request options
@@ -109,7 +109,7 @@ Apify.main(async () => {
             log.warning(`You cannot use search terms with allPlacesNoSearch option. Clearing them out.`)
             searchStringsArray.length = 0;
         }
-        searchStringsArray?.push('all_places_no_search');
+        searchStringsArray?.push(`all_places_no_search_${allPlacesNoSearchAction}`);
     }
 
     if (startRequests.length === 0) {
@@ -257,7 +257,7 @@ Apify.main(async () => {
         maxReviews, maxImages, exportPlaceUrls, additionalInfo,
         maxAutomaticZoomOut, reviewsSort, language, reviewsStartDate,
         geolocation, reviewsTranslation,
-        personalDataOptions, oneReviewPerRow, allPlacesNoSearch,
+        personalDataOptions, oneReviewPerRow, allPlacesNoSearch, allPlacesNoSearchAction,
     };
 
     /** @type {typedefs.HelperClasses} */

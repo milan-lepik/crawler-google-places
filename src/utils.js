@@ -1,3 +1,4 @@
+const { getCoords } = require('@turf/turf');
 const Apify = require('apify');
 const Puppeteer = require('puppeteer');
 
@@ -27,56 +28,49 @@ module.exports.fixFloatNumber = (float) => Number(float.toFixed(7));
 /**
  * @param {Puppeteer.Page} page 
  */
- module.exports.getImagePinsFromExternalActor = async (page) => {
-    await page.waitForSelector('canvas');
-    await Apify.utils.sleep(10000);
-    const dataImage = await page.evaluate(() => {
-        const canvas = document.querySelector('canvas');
-        return canvas?.toDataURL();
+ module.exports.getScreenshotPinsFromExternalActor = async (page) => {
+    const base64Image = await page.screenshot({ encoding: 'base64' });
+    const ocrActorRun = await Apify.call('alexey/google-maps-pins-map-ocr', { base64Image }, { memoryMbytes: 256 });
+    if (ocrActorRun?.status !== 'SUCCEEDED') {
+        log.error('getScreenshotPinsFromExternalActor', ocrActorRun);
+        return [];
+    }
+    const externalDataset = await Apify.openDataset(ocrActorRun.defaultDatasetId, { forceCloud: true });
+    const externalTAData = await externalDataset.getData({ clean: true });
+    log.info(`[OCR]: Found ${externalTAData.items.length} pin(s)`);
+    // add random placement to coordinates
+    const pinPositions = externalTAData.items.map((/** @type { any } */coords) => {
+        const rndX = Math.ceil(Math.random() + 6);
+        const rndY = Math.ceil(Math.random() + 6);
+        return {
+            x: coords?.x + rndX,
+            y: coords?.y + rndY,
+        }
     });
-    const dataImagePrefix = 'data:image/png;base64,';
-    const base64data = dataImage?.substr(dataImagePrefix.length);
-    const buffer = new Buffer(base64data, 'base64');
-    await Apify.setValue('testImage', buffer, { contentType: 'image/png' });
-    const screenshot = await page.screenshot();
-    await Apify.setValue('screenshot', screenshot, { contentType: 'image/png' });
-    const plannedMoves = [];
-    return plannedMoves;
+    await Apify.setValue('pinPositions', pinPositions);
+    return pinPositions;
 }
 
 /**
  * TODO: Add more cases
  * @param {Puppeteer.Page} page 
+ * @param {Array<{ x: number, y: number }>} ocrCoordinates,
  */
-module.exports.moveMouseThroughPage = async (page, pageStats) => {
-    const { width, height } = page.viewport();
-    // If you move with less granularity, places are missed
-    const dataImage = await page.evaluate(() => {
-        const canvas = document.querySelector('canvas');
-        return canvas.toDataURL();
-    });
-    const dataImagePrefix = 'data:image/png;base64,';
-    const base64data = dataImage.substr(dataImagePrefix.length);
-    const buffer = new Buffer(base64data, 'base64');
-    await Apify.setValue('testImage', buffer, { contentType: 'image/png' });
-    const plannedMoves = [];
-    for (let y = 0; y < height; y += 10) {
-        for (let x = 0; x < width; x += 10) {
-            plannedMoves.push({ x, y });
-        }
+module.exports.moveMouseThroughPage = async (page, pageStats, ocrCoordinates) => {
+    const plannedMoves = ocrCoordinates || [];
+    // If we do not have coordinates from OCR actor then fill in viewport
+    if (!ocrCoordinates?.length) {
+        const { width, height } = page.viewport();
+        // If you move with less granularity, places are missed
+        for (let y = 0; y < height; y += 10) {
+            for (let x = 0; x < width; x += 10) {
+                plannedMoves.push({ x, y });
+            }
+        }    
     }
     log.info(`[SEARCH]: Starting moving mouse over the map to gather all places. Will do ${plannedMoves.length} mouse moves. This might take a few minutes: ${page.url()}`);
-    log.warning(`dataImage ${width} x ${height} as ${dataImage.length}`);
     let done = 0;
     for (const { x, y } of plannedMoves) {
-        if (done === 50) {
-            // dismiss covid warning panel
-            try {
-                await page.click('button[aria-label*="Dismiss"]')
-            } catch (e) {
-                
-            }
-        }
         if (done !== 0 && done % 500 === 0) {
             log.info(`[SEARCH]: Mouse moves still in progress: ${done}/${plannedMoves.length}. Enqueued so far: ${pageStats.enqueued} --- ${page.url()}`);
         }
