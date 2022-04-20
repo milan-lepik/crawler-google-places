@@ -75,6 +75,10 @@ module.exports.moveMouseThroughPage = async (page, pageStats, ocrCoordinates) =>
             log.info(`[SEARCH]: Mouse moves still in progress: ${done}/${plannedMoves.length}. Enqueued so far: ${pageStats.enqueued} --- ${page.url()}`);
         }
         await page.mouse.move(x, y, { steps: 5 });
+        // add delay for processing OCR, otherwise places might be missed because mouse moved too fast
+        if (ocrCoordinates?.length) {
+            await Apify.utils.sleep(5000);
+        }
         done++;
     }
 }
