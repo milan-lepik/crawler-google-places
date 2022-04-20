@@ -38,16 +38,24 @@ module.exports.fixFloatNumber = (float) => Number(float.toFixed(7));
     const externalDataset = await Apify.openDataset(ocrActorRun.defaultDatasetId, { forceCloud: true });
     const externalTAData = await externalDataset.getData({ clean: true });
     log.info(`[OCR]: Found ${externalTAData.items.length} pin(s)`);
-    // add random placement to coordinates
-    const pinPositions = externalTAData.items.map((/** @type { any } */coords) => {
-        const rndX = Math.ceil(Math.random() + 6);
-        const rndY = Math.ceil(Math.random() + 6);
+    // recalculate coordinates around pin center (current pin is 20x20px)
+    const positionsFromActor = externalTAData.items.map((/** @type { any } */coords) => {
+        const rndX = 8 + Math.ceil(Math.random() + 8);
+        const rndY = 8 + Math.ceil(Math.random() + 8);
         return {
             x: coords?.x + rndX,
             y: coords?.y + rndY,
         }
     });
-    await Apify.setValue('pinPositions', pinPositions);
+    // for each original position add extra points at left and right
+    const pinPositions = [];
+    for (const pos of positionsFromActor) {
+        pinPositions.push({ x: pos?.x - 10, y: pos?.y - 10 });
+        pinPositions.push({ x: pos?.x - 5, y: pos?.y - 5 });
+        pinPositions.push(pos);
+        pinPositions.push({ x: pos?.x + 5, y: pos?.y + 5 });
+        pinPositions.push({ x: pos?.x + 10, y: pos?.y + 10 });
+    }
     return pinPositions;
 }
 
@@ -77,7 +85,7 @@ module.exports.moveMouseThroughPage = async (page, pageStats, ocrCoordinates) =>
         await page.mouse.move(x, y, { steps: 5 });
         // add delay for processing OCR, otherwise places might be missed because mouse moved too fast
         if (ocrCoordinates?.length) {
-            await Apify.utils.sleep(5000);
+            await Apify.utils.sleep(1000);
         }
         done++;
     }
