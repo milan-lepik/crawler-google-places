@@ -121,8 +121,7 @@ module.exports.setUpCrawler = ({ crawlerOptions, scrapingOptions, helperClasses 
             const mapUrl = new URL(request.url);
 
             // Never block images for allPlacesNoSearch to keep pins visible
-            // Block images for all places unless maxImages
-            if (!allPlacesNoSearch || (mapUrl?.href?.includes('place_id=') && !maxImages)) {
+            if (!allPlacesNoSearch && !maxImages) {
                 // https://lh5.googleusercontent.com/p/AF1QipMInapT8CB8U-QFRfRceZtzxbX5QRw0NJ08Fc7t=w408-h272-k-no
                 await blockRequests(page, {
                     urlPatterns: ['/maps/vt/', '/earth/BulkMetadata/', 'googleusercontent.com'],

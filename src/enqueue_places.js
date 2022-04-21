@@ -263,7 +263,7 @@ module.exports.enqueueAllPlaceDetails = async ({
     });
 
     // Special case that works completely differently
-    if (searchString.startsWith('all_places_no_search')) {
+    if (searchString?.startsWith('all_places_no_search')) {
         await Apify.utils.sleep(10000);
         // dismiss covid warning panel
         try {
