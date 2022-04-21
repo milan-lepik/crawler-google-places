@@ -59,6 +59,7 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * @typedef Input
  * @property {Apify.RequestOptions[]} [startUrls]
  * @property {boolean} allPlacesNoSearch
+ * @property {string} allPlacesNoSearchAction
  * @property {string[]} [searchStringsArray]
  * @property {string} [lat]
  * @property {string} [lng]

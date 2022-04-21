@@ -11,7 +11,7 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
 
 const { sleep, log } = Apify.utils;
 const { PLACE_TITLE_SEL, NEXT_BUTTON_SELECTOR, NO_RESULT_XPATH } = require('./consts');
-const { waitForGoogleMapLoader, parseZoomFromUrl, moveMouseThroughPage } = require('./utils');
+const { waitForGoogleMapLoader, parseZoomFromUrl, moveMouseThroughPage, getScreenshotPinsFromExternalActor } = require('./utils');
 const { parseSearchPlacesResponseBody } = require('./extractors/general');
 const { checkInPolygon } = require('./polygon');
 
@@ -263,8 +263,17 @@ module.exports.enqueueAllPlaceDetails = async ({
     });
 
     // Special case that works completely differently
-    if (searchString === 'all_places_no_search') {
-        await moveMouseThroughPage(page, pageStats);
+    if (searchString.startsWith('all_places_no_search')) {
+        await Apify.utils.sleep(10000);
+        // dismiss covid warning panel
+        try {
+            await page.click('button[aria-label*="Dismiss"]')
+        } catch (e) {
+            
+        }
+        // if specified by user input call OCR to recognize pins
+        const pinPositions = searchString.endsWith('_ocr') ? await getScreenshotPinsFromExternalActor(page) : [];
+        await moveMouseThroughPage(page, pageStats, pinPositions);
         log.info(`[SEARCH]: Mouse moving finished, enqueued ${pageStats.enqueued}/${pageStats.found} out of found: ${page.url()}`)
         return;
     }

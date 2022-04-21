@@ -118,15 +118,17 @@ module.exports.setUpCrawler = ({ crawlerOptions, scrapingOptions, helperClasses 
             // @ts-ignore
             await page._client.send('Emulation.clearDeviceMetricsOverride');
             
-            // This blocks images so we have to skip it
-            if (!maxImages && !allPlacesNoSearch) {
+            const mapUrl = new URL(request.url);
+
+            // Never block images for allPlacesNoSearch to keep pins visible
+            // Block images for all places unless maxImages
+            if (!allPlacesNoSearch || (mapUrl?.href?.includes('place_id=') && !maxImages)) {
+                // https://lh5.googleusercontent.com/p/AF1QipMInapT8CB8U-QFRfRceZtzxbX5QRw0NJ08Fc7t=w408-h272-k-no
                 await blockRequests(page, {
                     urlPatterns: ['/maps/vt/', '/earth/BulkMetadata/', 'googleusercontent.com'],
                 });
             }
             
-            const mapUrl = new URL(request.url);
-
             if (language) {
                 mapUrl.searchParams.set('hl', language);
             }

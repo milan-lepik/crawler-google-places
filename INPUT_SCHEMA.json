@@ -25,6 +25,23 @@
             "description": "Will scrape all places seen on the map. This depends on a lot of the zoom so for more places, increase the zoom. Doesn't work together with URLs",
             "default": false
         },
+        "allPlacesNoSearchAction": {
+            "title": "Action to scrape all places",
+            "description": "Moving mouse (slow) - OCR tool (fast but you need 256 MB of extra memory to call another actor)",
+            "enum": [
+                "mouse",
+                "ocr"
+            ],
+            "enumTitles": [
+                "Moving mouse (slow)",
+                "OCR tool (fast but you need 256 MB of extra memory to call another actor)"
+            ],
+            "type": "string",
+            "editor": "select",
+            "default": "mouse",
+            "example": "mouse",
+            "prefill": "mouse"
+        },
         "maxCrawledPlaces": {
             "title": "Max crawled places",
             "type": "integer",

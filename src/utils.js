@@ -1,3 +1,4 @@
+const { getCoords } = require('@turf/turf');
 const Apify = require('apify');
 const Puppeteer = require('puppeteer');
 
@@ -25,33 +26,64 @@ module.exports.waitForGoogleMapLoader = async (page) => {
 module.exports.fixFloatNumber = (float) => Number(float.toFixed(7));
 
 /**
- * TODO: Add more cases
  * @param {Puppeteer.Page} page 
  */
-module.exports.moveMouseThroughPage = async (page, pageStats) => {
-    const { width, height } = page.viewport();
-    // If you move with less granularity, places are missed
-    const plannedMoves = [];
-    for (let y = 0; y < height; y += 10) {
-        for (let x = 0; x < width; x += 10) {
-            plannedMoves.push({ x, y });
+ module.exports.getScreenshotPinsFromExternalActor = async (page) => {
+    const base64Image = await page.screenshot({ encoding: 'base64' });
+    const ocrActorRun = await Apify.call('alexey/google-maps-pins-map-ocr', { base64Image }, { memoryMbytes: 256 });
+    if (ocrActorRun?.status !== 'SUCCEEDED') {
+        log.error('getScreenshotPinsFromExternalActor', ocrActorRun);
+        return [];
+    }
+    const externalDataset = await Apify.openDataset(ocrActorRun.defaultDatasetId, { forceCloud: true });
+    const externalTAData = await externalDataset.getData({ clean: true });
+    log.info(`[OCR]: Found ${externalTAData.items.length} pin(s)`);
+    // recalculate coordinates to pin center (current pin is 20x20px)
+    const positionsFromActor = externalTAData.items.map((/** @type { any } */coords) => {
+        return {
+            x: coords?.x + 10,
+            y: coords?.y + 10,
         }
+    });
+    return positionsFromActor;
+}
+
+/**
+ * TODO: Add more cases
+ * @param {Puppeteer.Page} page 
+ * @param {Array<{ x: number, y: number }>} ocrCoordinates,
+ */
+module.exports.moveMouseThroughPage = async (page, pageStats, ocrCoordinates) => {
+    const plannedMoves = ocrCoordinates || [];
+    // If we do not have coordinates from OCR actor then fill in viewport
+    if (!ocrCoordinates?.length) {
+        const { width, height } = page.viewport();
+        // If you move with less granularity, places are missed
+        for (let y = 0; y < height; y += 10) {
+            for (let x = 0; x < width; x += 10) {
+                plannedMoves.push({ x, y });
+            }
+        }    
     }
     log.info(`[SEARCH]: Starting moving mouse over the map to gather all places. Will do ${plannedMoves.length} mouse moves. This might take a few minutes: ${page.url()}`);
     let done = 0;
     for (const { x, y } of plannedMoves) {
-        if (done === 50) {
-            // dismiss covid warning panel
-            try {
-                await page.click('button[aria-label*="Dismiss"]')
-            } catch (e) {
-                
-            }
-        }
         if (done !== 0 && done % 500 === 0) {
             log.info(`[SEARCH]: Mouse moves still in progress: ${done}/${plannedMoves.length}. Enqueued so far: ${pageStats.enqueued} --- ${page.url()}`);
         }
         await page.mouse.move(x, y, { steps: 5 });
+        // mouse trick for processing OCR, otherwise places might be missed because mouse moved too fast
+        if (ocrCoordinates?.length) {
+            // wait for place detection
+            await Apify.utils.sleep(1000);
+            // move a bit and wait again
+            await page.mouse.move(x + 4, y + 4, { steps: 5 });
+            await Apify.utils.sleep(1000);
+            // go back to top left corner to hide popup with preview
+            // otherwise it might overlap with places nearby and prevent them from detection
+            await page.mouse.move(0, 0, { steps: 5 });
+            await Apify.utils.sleep(1000);
+        }
         done++;
     }
 }
