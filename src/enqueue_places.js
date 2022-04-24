@@ -125,10 +125,6 @@ const enqueuePlacesFromResponse = (options) => {
                             + `--- ${searchString} - ${request.url}`);
                         break;
                     }
-                    if (searchString === '"all_places_no_search_urlonly_ocr"') {
-                        await Apify.pushData({ placeUrl });
-                        return;
-                    }
                     const { wasAlreadyPresent } = await requestQueue.addRequest({
                             url: placeUrl,
                             uniqueKey: placePaginationData.placeId,

@@ -199,14 +199,12 @@
             "enum": [
                 "",
                 "all_places_no_search_mouse",
-                "all_places_no_search_ocr",
-                "all_places_no_search_urlonly_ocr"
+                "all_places_no_search_ocr"
             ],
             "enumTitles": [
                 "NOT APPLIED",
                 "Scrape by Moving mouse (slow)",
-                "Scrape by OCR tool (fast but you need 256 MB of extra memory to call another actor)",
-                "Scrape only URLS by OCR tool (fast but you need 256 MB of extra memory to call another actor)"
+                "Scrape by OCR tool (fast but you need 256 MB of extra memory to call another actor)"
             ],
             "type": "string",
             "editor": "select",
