@@ -30,14 +30,14 @@ module.exports.fixFloatNumber = (float) => Number(float.toFixed(7));
  */
  module.exports.getScreenshotPinsFromExternalActor = async (page) => {
     const base64Image = await page.screenshot({ encoding: 'base64' });
-    const ocrActorRun = await Apify.call('alexey/google-maps-pins-map-ocr', { base64Image }, { memoryMbytes: 256 });
+    const ocrActorRun = await Apify.call('alexey/google-maps-pins-map-ocr', { base64Image, mapURL: page.url() }, { memoryMbytes: 256 });
     if (ocrActorRun?.status !== 'SUCCEEDED') {
         log.error('getScreenshotPinsFromExternalActor', ocrActorRun);
         return [];
     }
     const externalDataset = await Apify.openDataset(ocrActorRun.defaultDatasetId, { forceCloud: true });
     const externalTAData = await externalDataset.getData({ clean: true });
-    log.info(`[OCR]: Found ${externalTAData.items.length} pin(s)`);
+    log.info(`[OCR]: Found ${externalTAData.items.length} pin(s) by run ${ocrActorRun?.id} for ${page.url()}`);
     // recalculate coordinates to pin center (current pin is 20x20px)
     const positionsFromActor = externalTAData.items.map((/** @type { any } */coords) => {
         return {

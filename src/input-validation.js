@@ -73,7 +73,7 @@ module.exports.validateInput = (input) => {
         log.warning(`WRONG INPUT: If reviewsStartDate is present, reviewsSort must be newest. Setting it up.`);
     }
 
-    if (!input.searchStringsArray && !input.startUrls && !input.allPlacesNoSearch) {
+    if (!input.searchStringsArray && !input.startUrls && !input.allPlacesNoSearch && !input.allPlacesNoSearchAction) {
         throw 'You have to provide startUrls or searchStringsArray in input!';
     }
 

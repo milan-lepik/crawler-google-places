@@ -125,6 +125,10 @@ const enqueuePlacesFromResponse = (options) => {
                             + `--- ${searchString} - ${request.url}`);
                         break;
                     }
+                    if (searchString === '"all_places_no_search_urlonly_ocr"') {
+                        await Apify.pushData({ placeUrl });
+                        return;
+                    }
                     const { wasAlreadyPresent } = await requestQueue.addRequest({
                             url: placeUrl,
                             uniqueKey: placePaginationData.placeId,
@@ -272,7 +276,12 @@ module.exports.enqueueAllPlaceDetails = async ({
             
         }
         // if specified by user input call OCR to recognize pins
-        const pinPositions = searchString.endsWith('_ocr') ? await getScreenshotPinsFromExternalActor(page) : [];
+        const isPinsFromOCR = searchString.endsWith('_ocr');
+        const pinPositions =  isPinsFromOCR ? await getScreenshotPinsFromExternalActor(page) : [];
+        if (isPinsFromOCR && !pinPositions?.length) {
+            // no OCR results, do not fall back to regular mouseMove
+            return;
+        }
         await moveMouseThroughPage(page, pageStats, pinPositions);
         log.info(`[SEARCH]: Mouse moving finished, enqueued ${pageStats.enqueued}/${pageStats.found} out of found: ${page.url()}`)
         return;

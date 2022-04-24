@@ -104,12 +104,19 @@ Apify.main(async () => {
         }));
     }
 
-    if (allPlacesNoSearch) {
+    // for backwards compatibility keep checkup for
+    // old UI: allPlacesNoSearch true/false and allPlacesNoSearchAction "mouse"/"ocr"
+    // new UI: only allPlacesNoSearchAction [EMPTY_STRING]/"all_places_no_search_mouse"/"all_places_no_search_ocr"
+    if (allPlacesNoSearch || allPlacesNoSearchAction) {
         if (searchStringsArray?.length > 0) {
             log.warning(`You cannot use search terms with allPlacesNoSearch option. Clearing them out.`)
             searchStringsArray.length = 0;
         }
-        searchStringsArray?.push(`all_places_no_search_${allPlacesNoSearchAction}`);
+        if (allPlacesNoSearchAction?.startsWith('all_places_no_search')) {
+            searchStringsArray?.push(allPlacesNoSearchAction);
+        } else {
+            searchStringsArray?.push(`all_places_no_search_${allPlacesNoSearchAction}`);
+        }
     }
 
     if (startRequests.length === 0) {
@@ -257,7 +264,8 @@ Apify.main(async () => {
         maxReviews, maxImages, exportPlaceUrls, additionalInfo,
         maxAutomaticZoomOut, reviewsSort, language, reviewsStartDate,
         geolocation, reviewsTranslation,
-        personalDataOptions, oneReviewPerRow, allPlacesNoSearch
+        personalDataOptions, oneReviewPerRow,
+        allPlacesNoSearch: allPlacesNoSearch || allPlacesNoSearchAction ? true : false
     };
 
     /** @type {typedefs.HelperClasses} */
