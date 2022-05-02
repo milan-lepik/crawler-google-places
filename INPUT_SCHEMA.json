@@ -202,7 +202,7 @@
                 "all_places_no_search_ocr"
             ],
             "enumTitles": [
-                "NOT APPLIED",
+                "Not applied (normal search or direct places)",
                 "Scrape by Moving mouse (slow)",
                 "Scrape by OCR tool (fast but you need 256 MB of extra memory to call another actor)"
             ],

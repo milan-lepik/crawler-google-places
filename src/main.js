@@ -27,7 +27,7 @@ Apify.main(async () => {
 
     const {
         // Search and Start URLs
-        startUrls, searchStringsArray = [], allPlacesNoSearch = false, allPlacesNoSearchAction = '',
+        startUrls, searchStringsArray = [], allPlacesNoSearchAction = '',
         // Geolocation
         lat, lng, country, state, county, city, postalCode, zoom, customGeolocation,
         // browser and request options
@@ -104,19 +104,12 @@ Apify.main(async () => {
         }));
     }
 
-    // for backwards compatibility keep checkup for
-    // old UI: allPlacesNoSearch true/false and allPlacesNoSearchAction "mouse"/"ocr"
-    // new UI: only allPlacesNoSearchAction [EMPTY_STRING]/"all_places_no_search_mouse"/"all_places_no_search_ocr"
-    if (allPlacesNoSearch || allPlacesNoSearchAction) {
+    if (allPlacesNoSearchAction) {
         if (searchStringsArray?.length > 0) {
             log.warning(`You cannot use search terms with allPlacesNoSearch option. Clearing them out.`)
             searchStringsArray.length = 0;
         }
-        if (allPlacesNoSearchAction?.startsWith('all_places_no_search')) {
-            searchStringsArray?.push(allPlacesNoSearchAction);
-        } else {
-            searchStringsArray?.push(`all_places_no_search_${allPlacesNoSearchAction}`);
-        }
+        searchStringsArray?.push(allPlacesNoSearchAction);
     }
 
     if (startRequests.length === 0) {
@@ -265,7 +258,7 @@ Apify.main(async () => {
         maxAutomaticZoomOut, reviewsSort, language, reviewsStartDate,
         geolocation, reviewsTranslation,
         personalDataOptions, oneReviewPerRow,
-        allPlacesNoSearch: allPlacesNoSearch || allPlacesNoSearchAction ? true : false
+        allPlacesNoSearchAction
     };
 
     /** @type {typedefs.HelperClasses} */

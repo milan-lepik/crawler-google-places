@@ -100,7 +100,7 @@ const handlePageFunctionExtended = async ({ pageContext, scrapingOptions, helper
  * }} options
  */
 module.exports.setUpCrawler = ({ crawlerOptions, scrapingOptions, helperClasses }) => {
-    const { maxImages, language, allPlacesNoSearch } = scrapingOptions;
+    const { maxImages, language, allPlacesNoSearchAction } = scrapingOptions;
     const { pageLoadTimeoutSec, ...options } = crawlerOptions;
     const { stats, errorSnapshotter } = helperClasses;
     return new Apify.PuppeteerCrawler({
@@ -121,7 +121,7 @@ module.exports.setUpCrawler = ({ crawlerOptions, scrapingOptions, helperClasses 
             const mapUrl = new URL(request.url);
 
             // Never block images for allPlacesNoSearch to keep pins visible
-            if (!allPlacesNoSearch && !maxImages) {
+            if (!allPlacesNoSearchAction && !maxImages) {
                 // https://lh5.googleusercontent.com/p/AF1QipMInapT8CB8U-QFRfRceZtzxbX5QRw0NJ08Fc7t=w408-h272-k-no
                 await blockRequests(page, {
                     urlPatterns: ['/maps/vt/', '/earth/BulkMetadata/', 'googleusercontent.com'],

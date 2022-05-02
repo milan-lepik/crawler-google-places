@@ -11,6 +11,8 @@ const { log } = Apify.utils;
 // maxImages and maxReviews 0 or empty scraped all
 // Right now, it works like you woudl expect, 0 or empty means no images, for all images just set 99999
 // If includeReviews/includeImages is not present, we process regularly
+// 2022-01-01: Previously there was a checkbox allPlacesNoSearch
+// Right now its replaces by enum allPlacesNoSearchAction
 /** @param {any} input */
 module.exports.makeInputBackwardsCompatible = (input) => {
     // Deprecated on 2021-08
@@ -20,6 +22,18 @@ module.exports.makeInputBackwardsCompatible = (input) => {
             + 'Use maxCrawledPlaces: 99999999 instead. Setting it to 99999999 for this run.');
     }
 
+    // Deprecated on 2022-01
+    if (input.allPlacesNoSearch !== undefined) {
+        log.warning('INPUT DEPRECATION: allPlacesNoSearch '
+        + 'input field have been deprecated and will be removed soon! Use allPlacesNoSearchAction instead');
+    }
+    if (input.allPlacesNoSearch === true && !input.allPlacesNoSearchAction) {
+        input.allPlacesNoSearchAction = 'all_places_no_search_mouse';
+    }
+    if (input.allPlacesNoSearchAction && !input.allPlacesNoSearchAction?.startsWith('all_places_no_search')) {
+        // old UI: allPlacesNoSearch true/false and allPlacesNoSearchAction "mouse"/"ocr"
+        input.allPlacesNoSearchAction = `all_places_no_search_${input.allPlacesNoSearchAction}`
+    }
     // Deprecated on 2020-07
     if (input.includeReviews !== undefined || input.includeImages !== undefined) {
         log.warning('INPUT DEPRECATION: includeReviews and includeImages '
@@ -73,7 +87,7 @@ module.exports.validateInput = (input) => {
         log.warning(`WRONG INPUT: If reviewsStartDate is present, reviewsSort must be newest. Setting it up.`);
     }
 
-    if (!input.searchStringsArray && !input.startUrls && !input.allPlacesNoSearch && !input.allPlacesNoSearchAction) {
+    if (!input.searchStringsArray && !input.startUrls && !input.allPlacesNoSearchAction) {
         throw 'You have to provide startUrls or searchStringsArray in input!';
     }
 
