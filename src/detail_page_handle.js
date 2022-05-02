@@ -104,7 +104,7 @@ module.exports.handlePlaceDetail = async (options) => {
 
     let totalScore = jsonData?.[4]?.[7] || null;
     let reviewsCount = jsonData?.[4]?.[8] || 0;
-    let permanentlyClosed = (jsonData?.[203]?.[1]?.[4]?.[0] === 'Permanently closed');
+    let permanentlyClosed = (jsonData?.[88]?.[0] === "CLOSED" || jsonData?.[203]?.[1]?.[4]?.[0] === 'Permanently closed');
 
     // We fallback to HTML (might be good to do only)
     if (!totalScore) {
