@@ -1,3 +1,7 @@
+# 2022-05-02
+*Fixes*
+- subTitle extraction works now
+
 # 2022-04-04
 *Fixes*
 - Blocked responses on the search page now properly retry the request (no more unhandled promise rejection)
@@ -72,7 +76,7 @@ See [Readme](https://apify.com/drobnikj/crawler-google-places#automatic-zooming)
 ## 2021-11-15
 *Fixes*
 - `exportPlaceUrls` now properly dedupes the URLs
-- added `categories` fields listing all categories the place is listed in 
+- added `categories` fields listing all categories the place is listed in
 
 ## 2021-11-11
 *Fixes*
@@ -102,7 +106,7 @@ See [Readme](https://apify.com/drobnikj/crawler-google-places#automatic-zooming)
 
 ## 2021-09-27
 *Fixes*
-- Fixed image extraction & make it optional (it should not crash the whole scrape) 
+- Fixed image extraction & make it optional (it should not crash the whole scrape)
 
 ## 2021-09-15
 *Fixes*
@@ -163,7 +167,7 @@ https://github.com/drobnikj/crawler-google-places/issues/181
 ## 2021-06-03
 *Fixes*
 (hopefully last fixes after the layout change)
-- Scraping all images per place works again 
+- Scraping all images per place works again
 - Fixed `additionalInfo`
 - Fixed `openiningHours`
 

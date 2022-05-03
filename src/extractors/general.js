@@ -38,13 +38,16 @@ const parseJsonResult = (placeData, isAdvertisement) => {
         ? { lat: fixFloatNumber(coordsArr[2]), lng: fixFloatNumber(coordsArr[3]) }
         : { lat: null, lng: null };
 
+    const subTitle = placeData?.[101]
+    
     return {
         placeId: placeData[78],
         coords,
         addressParsed,
         isAdvertisement,
         website: placeData[7]?.[0] || null,
-        categories
+        categories,
+        subTitle
     };
 }
 
@@ -153,7 +156,7 @@ module.exports.extractPageData = async ({ page, jsonData }) => {
 
         return {
             title: $(placeTitleSel).text().trim(),
-            subTitle: $('section-hero-header-title-subtitle').first().text().trim() || null,
+            subTitle: jsonResult.subTitle || $(`*:has(> ${placeTitleSel})+h2`).first().text().trim() || null,
             price: $("span[aria-label^='Price: ']").text().trim() || null,
             menu: $("button[aria-label='Menu']").text().replace(/Menu/g,'').trim() || null,
             // Getting from JSON now
