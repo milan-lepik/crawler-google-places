@@ -11,7 +11,7 @@ const MaxCrawledPlacesTracker = require('./max-crawled-places');
 const ExportUrlsDeduper = require('./export-urls-deduper');
 const { prepareSearchUrlsAndGeo } = require('./search');
 const { createStartRequestsWithWalker } = require('./walker');
-const { makeInputBackwardsCompatible, validateInput, getValidStartRequests } = require('./input-validation');
+const { makeInputBackwardsCompatible, validateInput, getValidStartRequests, adjustInput } = require('./input-validation');
 const { parseRequestsFromStartUrls } = require('./utils');
 
 const { log } = Apify.utils;
@@ -24,6 +24,7 @@ Apify.main(async () => {
 
     makeInputBackwardsCompatible(input);
     validateInput(input);
+    adjustInput(input);
 
     const {
         // Search and Start URLs

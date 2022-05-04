@@ -109,6 +109,17 @@ module.exports.validateInput = (input) => {
     }
 };
 
+/** @param {typedefs.Input} input */
+module.exports.adjustInput = (input) => {
+    // We have to limit concurrency for this otherwise the cralwer doesn't properly downscale
+    // and just grinds to freeze
+    if (input.allPlacesNoSearchAction) {
+        log.warning('You are using special mode for allPlacesNoSearchAction which requires '
+            + 'interaction with a map. We are reducing maxConcurrency to 20 to make it smoother.');
+        input.maxConcurrency = 20;
+    }
+}
+
 /**
  *
  * @param {{
