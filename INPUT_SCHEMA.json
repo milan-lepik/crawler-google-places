@@ -11,9 +11,9 @@
             "editor": "requestListSources"
         },
         "searchStringsArray": {
-            "title": "Search Terms",
+            "title": "Search Terms (and Location)",
             "type": "array",
-            "description": "Array of strings to be searched. It is also possible to fill in Google Place IDs in the format place_id:ChIJp4JiUCNP0xQR1JaSjpW_Hms. Setting geolocation input fields is more accurate than including location in the search string.",
+            "description": "Here you write what you search for and where you want to search it for, so e.g. 'restaurant New York', or 'pet shelter USA'. It is also possible to fill in Google Place IDs in the format place_id:ChIJp4JiUCNP0xQR1JaSjpW_Hms. Setting geolocation input fields is more accurate than including location in the search string.",
             "editor": "stringList",
             "prefill": [
                 "restaurant New York"
@@ -349,8 +349,8 @@
             "type": "string",
             "description": "Set the country where the search should be performed, e.g. 'USA'.",
             "editor": "textfield",
-            "sectionCaption": "Geolocation",
-            "sectionDescription": "Here you can set where places should be searched. Prefer using any combination of country, state, county, city or postal code to get maximum results. This scraper automatically chooses appropriate map zoom and splits the map into many smaller searches to catch as many places as possible. Currently, the scraper doesn't work well for full country searching of sparsely populated countries like USA or Russia. For these, prefer searching city by city or focus on populated states. Latitude and longitude or polygon don't have this functionality and will yield less results (but are faster)."
+            "sectionCaption": "Advanced configuration (geolocation)",
+            "sectionDescription": "You can get the results faster when you use the location in the search above. For more or more specific results you can set precise geolocation for your search. Prefer using any combination of country, state, county, city or postal code to get maximum results. This scraper automatically chooses appropriate map zoom and splits the map into many smaller searches to catch as many places as possible. Currently, the scraper doesn't work well for full country searching of sparsely populated countries like USA or Russia. For these, prefer searching city by city or focus on populated states. Latitude and longitude or polygon don't have this functionality and will yield less results (but are faster)."
         },
         "state": {
             "title": "State",
