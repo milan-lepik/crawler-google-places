@@ -31,6 +31,7 @@
           "title": "Max places per search",
           "type": "integer",
           "description": "Maximum number of places you scrape per search term. If you want to scrape all available, set this to `9999999`.",
+          "prefill": 10,
           "minimum": 0
       },
       "language": {
