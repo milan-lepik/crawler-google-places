@@ -241,7 +241,7 @@
           "prefill": 0,
           "unit": "reviews per place",
           "sectionCaption": "Reviews",
-          "sectionDescription": "If you want to also get reviews from the places you search, specify what you need bellow. \n Note that some of the fields contain <strong>personal data<strong>. Personal data is protected by the GDPR in the European Union and by other regulations around the world. You should not scrape personal data unless you have a legitimate reason to do so. If you're unsure whether your reason is legitimate, consult your lawyers."
+          "sectionDescription": "If you want to also get reviews from the places you search, specify what you need bellow. \n Note that some of the fields contain **personal data**. Personal data is protected by the GDPR in the European Union and by other regulations around the world. You should not scrape personal data unless you have a legitimate reason to do so. If you're unsure whether your reason is legitimate, consult your lawyers."
       },
       "oneReviewPerRow": {
         "title": "One review per row",
