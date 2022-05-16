@@ -92,15 +92,55 @@ module.exports.handlePlaceDetail = async (options) => {
 
     const pageData = await extractPageData({ page, jsonData });
 
-    const orderBy = (() => {
-        try {
-            return jsonData[75][0][0][2].map((/** @type {any} */ i) => {
-                return { name: i[0][0], url: i[1][2][0] }
-            });
-        } catch (e) {
-            return [];
+
+    let orderBy;
+    // new format where food ordering represented by widget https://food.google.com/chooseprovider
+    // TODO optional "Reserve a table" - https://www.google.com/maps/reserve/v/dine - same path, different URL
+    try {
+        const orderByWidget = jsonData?.[75]?.[0]?.find((/** @type {any} */ x) => x?.[5]?.[1]?.[2]?.[0]?.startsWith('https://food.google.com/chooseprovider'));
+        if (orderByWidget) {
+            const orderByWidgetUrl = orderByWidget[5]?.[1]?.[2]?.[0];
+            const orderWidgetHtml = await page.evaluate(async (url) => {
+                const data = await fetch(url).then((r) => r.text());
+                return data;
+            }, orderByWidgetUrl);
+            // we getting two instances of AF_initDataCallback, first one looks like place info
+            // we need
+            // AF_initDataCallback({key: 'ds:1'
+            const orderByInlineJsonData = orderWidgetHtml?.split(`AF_initDataCallback({key: 'ds:1'`)?.[1]?.split(', data:')?.[1]?.split(', sideChannel:')?.[0];
+            if (orderByInlineJsonData) {
+                log.debug(`[ORDERBY]: parsing widget ${orderByWidgetUrl}`);
+            } else {
+                log.warning(`[ORDERBY]: unknown widget format ${orderByWidgetUrl}`);
+            }
+            const orderByInlineJson = orderByInlineJsonData ? JSON.parse(orderByInlineJsonData) : {};
+            let deliveryArray = orderByInlineJson?.[0];
+            if (!deliveryArray) {
+                deliveryArray = orderByInlineJson?.data?.[8];
+                log.debug(`[ORDERBY]: delivery options not as expected ${orderByWidgetUrl}`);
+            }
+            if (deliveryArray?.[21]) {
+                orderBy = deliveryArray?.[21]?.map((/** @type {any} */ x) => {
+                    return {
+                        name: x?.[3],
+                        url: x?.[32],
+                        orderUrl: x?.[49]
+                    }
+
+                });
+            }
         }
-    })();
+    } catch (/** @type {any} */ err) {
+        log.error(`[ORDERBY]: ${err?.message}`);
+    }
+    if (!orderBy?.length) {
+        // old format with inline json values, displayed randomly by google maps as of 15 of May 2022
+        orderBy = jsonData?.[75]?.[0]?.[0]?.[2]?.map((/** @type {any} */ i) => {
+            return { name: i?.[0]?.[0], url: i?.[1]?.[2]?.[0] }
+        }).filter((/** @type {any} */ x) => x?.url);
+    }
+    // if none of parsing returned results output must be empty array for backwards compatibility
+    orderBy = orderBy || [];
 
     let totalScore = jsonData?.[4]?.[7] || null;
     let reviewsCount = jsonData?.[4]?.[8] || 0;
