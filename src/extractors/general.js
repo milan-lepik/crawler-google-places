@@ -332,7 +332,7 @@ module.exports.extractAdditionalInfo = async ({ page, placeUrl, jsonData }) => {
                 /** @type {{[key: string]: any[]}} */
                 const innerResult = {};
                 $('div[role="region"]').each((_, section) => {
-                    const key = $(section).find('*[class*="subtitle"]').text().trim();
+                    const key = $(section).find('*[class*="fontTitleSmall"]').text().trim();
                     /** @type {{[key: string]: boolean}[]} */
                     const values = [];
                     $(section).find('li:has(span[aria-label])').each((_i, sub) => {
