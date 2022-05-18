@@ -26,18 +26,12 @@
                             "website",
                             "phone",
                             "totalScore",
-                            "reviewsCount",
-                            "imageUrls"
+                            "reviewsCount"
                         ]
                     },
                     "display": {
                         "component": "table",
                         "columns": [
-                            {
-                                "label": "",
-                                "format": "image",
-                                "field": "imageUrls[0]"
-                            },
                             {
                                 "label": "Place name",
                                 "format": "link",
