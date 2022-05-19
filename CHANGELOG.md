@@ -1,3 +1,7 @@
+# 2022-05-19
+*Features*
+- Added `gasPrices` to output. Available only for gas stations in US to the best of our knowledge.
+
 # 2022-05-02
 *Fixes*
 - subTitle extraction works now
