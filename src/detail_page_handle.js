@@ -92,6 +92,28 @@ module.exports.handlePlaceDetail = async (options) => {
 
     const pageData = await extractPageData({ page, jsonData });
 
+    const gasPrices = jsonData?.[86]?.[0]?.map((/** @type {any} */ arr) => {
+        /* expected raw array
+        [
+        "$4.10",
+        3,
+        1652829848,
+        "gallon",
+        1,
+        "USD",
+        4.1,
+        "Regular"
+        ],
+        */
+       return {
+           priceTag: arr?.[0],
+           updatedAt: new Date(arr?.[2] * 1000).toISOString(),
+           unit: arr?.[3],
+           currency: arr?.[5],
+           price: arr?.[6],
+           gasType: arr?.[7]
+       }
+    });
 
     let orderBy;
     // new format where food ordering represented by widget https://food.google.com/chooseprovider
@@ -247,6 +269,7 @@ module.exports.handlePlaceDetail = async (options) => {
             { name: 'Reviews extraction' },
         ),
         orderBy,
+        gasPrices,
     };
     
     if (oneReviewPerRow) {
