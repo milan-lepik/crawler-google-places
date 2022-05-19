@@ -214,7 +214,8 @@ The whole download link for, e.g. CSV would look like this (with dataset ID):[ht
 #### Gas prices
 
 If business place is gas station then gas prices parsed when available. Normally to see gas prices in browser search must include "Gas" category, for example https://www.google.com/maps/search/Gas/@33.4260879,-87.6703234,8z/data=!3m1!4b1?hl=en
-However actor will get prices for any gas station found by any other search or specified by direct URL. Please note that not every gas station provides prices, if prices available you will get output as follows:
+However actor will get prices for any gas station found by any other search or specified by direct URL.
+Please note that prices currently expected only from USA and not every gas station provides prices, if available you will get output as follows:
 ```json
 "gasPrices": [
   {
