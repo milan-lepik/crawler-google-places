@@ -1,4 +1,3 @@
-const { getCoords } = require('@turf/turf');
 const Apify = require('apify');
 const Puppeteer = require('puppeteer');
 
@@ -26,7 +25,7 @@ module.exports.waitForGoogleMapLoader = async (page) => {
 module.exports.fixFloatNumber = (float) => Number(float.toFixed(7));
 
 /**
- * @param {Puppeteer.Page} page 
+ * @param {Puppeteer.Page} page
  */
  module.exports.getScreenshotPinsFromExternalActor = async (page) => {
     const base64Image = await page.screenshot({ encoding: 'base64' });
@@ -50,20 +49,22 @@ module.exports.fixFloatNumber = (float) => Number(float.toFixed(7));
 
 /**
  * TODO: Add more cases
- * @param {Puppeteer.Page} page 
+ * @param {Puppeteer.Page} page
+ * @param {{ enqueued: number }} pageStats
  * @param {Array<{ x: number, y: number }>} ocrCoordinates,
  */
 module.exports.moveMouseThroughPage = async (page, pageStats, ocrCoordinates) => {
     const plannedMoves = ocrCoordinates || [];
     // If we do not have coordinates from OCR actor then fill in viewport
-    if (!ocrCoordinates?.length) {
-        const { width, height } = page.viewport();
+    const viewport = page.viewport();
+    if (!ocrCoordinates?.length && viewport) {
+        const { width, height } = viewport;
         // If you move with less granularity, places are missed
         for (let y = 0; y < height; y += 10) {
             for (let x = 0; x < width; x += 10) {
                 plannedMoves.push({ x, y });
             }
-        }    
+        }
     }
     log.info(`[SEARCH]: Starting moving mouse over the map to gather all places. Will do ${plannedMoves.length} mouse moves. This might take a few minutes: ${page.url()}`);
     let done = 0;
@@ -120,11 +121,11 @@ const convertGoogleSheetsUrlToCsvDownload = (sheetUrl) => {
         log.error(`Invalid start url provided (${sheetUrl}).
         Google spreadsheet url must contain: docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/`);
         return null;
-    } 
-    
+    }
+
     const baseUrl = baseUrlMatches[0];
     const downloadRequestUrl = `${baseUrl}${CSV_DOWNLOAD_SUFFIX}`;
-    
+
     log.info(`Converting Google Sheets URL to a standardized format. If this doesn't work, please create an issue`);
     log.info(`${sheetUrl} => ${downloadRequestUrl}`);
 
@@ -136,7 +137,7 @@ const convertGoogleSheetsUrlToCsvDownload = (sheetUrl) => {
  * @param {string} downloadUrl
  * @returns {Promise<any[]>}
  */
-const fetchRowsFromCsvFile = async (downloadUrl) => {    
+const fetchRowsFromCsvFile = async (downloadUrl) => {
     const { body } = await utils.requestAsBrowser({ url: downloadUrl});
     const rows = body.replace(/[";]/g, '').split('\n');
 
@@ -154,8 +155,8 @@ const fetchRowsFromCsvFile = async (downloadUrl) => {
 };
 
 /**
- * 
- * @param {string} fileUrl 
+ *
+ * @param {string} fileUrl
  */
 const parseStartUrlsFromFile = async (fileUrl) => {
     /** @type {string[]} */
@@ -178,8 +179,8 @@ const parseStartUrlsFromFile = async (fileUrl) => {
 };
 
 /**
- * 
- * @param {any[]} startUrls 
+ *
+ * @param {any[]} startUrls
  * @returns { Promise<{ url: string, uniqueKey: string }[]> }
  */
 module.exports.parseRequestsFromStartUrls = async (startUrls) => {
@@ -189,7 +190,7 @@ module.exports.parseRequestsFromStartUrls = async (startUrls) => {
     let updatedStartUrls = [];
 
     /**
-     * `uniqueKey` is specified explicitly for each request object 
+     * `uniqueKey` is specified explicitly for each request object
      * as SDK otherwise wrongly normalizes it
      */
 
@@ -384,14 +385,14 @@ module.exports.waitAndHandleConsentScreen = async (page, url, persistCookiesPerS
     }
 };
 
-// 
+//
 
 /**
  * Only certain formats of place URLs will give the JSON with data
  * Examples in /samples/URLS-PLACE.js
  * https://www.google.com/maps/place/All+Bar+One+Waterloo/@51.5027459,-0.1196255,17z/data=!4m5!3m4!1s0x487604b8703e7371:0x4fa0bac2e4eea2de!8m2!3d51.5027724!4d-0.11729
  * https://www.google.com/maps/place/All+Bar+One+Waterloo/@51.5031352,-0.1219012,17z/data=!3m1!5s0x487604c79a2ef535:0x6b1752373d1ab417!4m12!1m6!3m5!1s0x487604b900d26973:0x4291f3172409ea92!2slastminute.com+London+Eye!8m2!3d51.5032973!4d-0.1195537!3m4!1s0x487604b8703e7371:0x4fa0bac2e4eea2de!8m2!3d51.5027724!4d-0.11729
- * @param {string} url 
+ * @param {string} url
  * @returns {string}
  */
 module.exports.normalizePlaceUrl = (url) => {

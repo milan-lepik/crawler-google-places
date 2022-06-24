@@ -46,7 +46,7 @@ Apify.main(async () => {
         // For some rare places, Google doesn't show all reviews unless in newest sorting
         reviewsSort = 'newest', reviewsStartDate,
         // Fields used by Heyrick only, not present in the schema (too narrow use-case for now)
-        cachePlaces = false, useCachedPlaces = false, cacheKey,
+        cachePlaces = false, useCachedPlaces = false, cacheKey = '',
 
         // Personal data
         scrapeReviewerName = true, scrapeReviewerId = true, scrapeReviewerUrl = true,
@@ -79,7 +79,7 @@ Apify.main(async () => {
         exportUrlsDeduper = new ExportUrlsDeduper();
         await exportUrlsDeduper.initialize(Apify.events);
     }
-    
+
     // Requests that are used in the queue, we persist them to skip this step after migration
     const startRequests = /** @type {Apify.RequestOptions[]} */ (await Apify.getValue('START-REQUESTS')) || [];
 
@@ -124,7 +124,7 @@ Apify.main(async () => {
             const updatedStartUrls = await parseRequestsFromStartUrls(startUrls);
             const validStartRequests = getValidStartRequests(updatedStartUrls);
             validStartRequests.forEach((req) => startRequests.push(req));
-            
+
         } else if (searchStringsArray?.length) {
             for (const searchString of searchStringsArray) {
                 // Sometimes users accidentally pass empty strings
@@ -202,6 +202,27 @@ Apify.main(async () => {
 
     const proxyConfiguration = await Apify.createProxyConfiguration(proxyConfig);
 
+    /**
+     * `stealthOptions` property is not declared in `launchContext`.
+     * It is passed to Puppeteer launcher through `launchContext`:
+     * `const puppeteerLauncher = new PuppeteerLauncher(launchContext);`
+     * `puppeteerLauncher.stealthOptions`
+     */
+     const stealthOptionsWrapper = {
+        stealthOptions: {
+            addLanguage: false,
+            addPlugins: false,
+            emulateConsoleDebug: false,
+            emulateWebGL: false,
+            hideWebDriver: true,
+            emulateWindowFrame: false,
+            hackPermissions: false,
+            mockChrome: false,
+            mockDeviceMemory: false,
+            mockChromeInIframe: false,
+        }
+    }
+
     /** @type {typedefs.CrawlerOptions} */
     const crawlerOptions = {
         requestQueue,
@@ -222,18 +243,7 @@ Apify.main(async () => {
         launchContext: {
             useChrome,
             stealth: useStealth,
-            stealthOptions: {
-                addLanguage: false,
-                addPlugins: false,
-                emulateConsoleDebug: false,
-                emulateWebGL: false,
-                hideWebDriver: true,
-                emulateWindowFrame: false,
-                hackPermissions: false,
-                mockChrome: false,
-                mockDeviceMemory: false,
-                mockChromeInIframe: false,
-            },
+            ...stealthOptionsWrapper,
             launchOptions: {
                 headless,
                 args: [

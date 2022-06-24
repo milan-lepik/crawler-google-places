@@ -103,7 +103,8 @@ const { log, sleep } = Apify.utils;
     try {
         results = stringifyGoogleXrhResponse(stringBody);
     } catch (e) {
-        return { error: e.message };
+        const error = /** @type {Error | string} */ (e);
+        return { error };
     }
     if (!results || !results[2]) {
         return { currentReviews };
@@ -145,7 +146,7 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
     // Just need to sort appropriately manually
     if (defaultReviewsJson.length >= targetReviewsCount) {
         reviews = defaultReviewsJson
-            .map((defaultReviewJson) => parseReviewFromJson(defaultReviewJson, reviewsTranslation));
+            .map((/** @type {any} */ defaultReviewJson) => parseReviewFromJson(defaultReviewJson, reviewsTranslation));
         // mostRelevant is default
 
         if (reviewsSort === 'newest') {
@@ -156,10 +157,10 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
             })
         }
         if (reviewsSort === 'highestRanking') {
-            reviews.sort((review1, review2) => review2.stars - review1.stars);
+            reviews.sort((review1, review2) => (review2.stars || 0) - (review1.stars || 0));
         }
         if (reviewsSort === 'lowestRanking') {
-            reviews.sort((review1, review2) => review1.stars - review2.stars);
+            reviews.sort((review1, review2) => (review2.stars || 0) - (review1.stars || 0));
         }
         log.info(`[PLACE]: Reviews extraction finished: ${reviews.length}/${reviewsCount} --- ${page.url()}`);
     } else {
@@ -244,7 +245,7 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
                 // I think can happen if the review count changes
                 log.warning(`Invalid response returned for reviews. `
                 + `This might be caused by updated review count. The reviews should be scraped correctly. ${page.url()}`);
-                log.warning(error);
+                log.warning(typeof error === 'string' ? error : error.message);
                 break;
             }
             if (currentReviews.length === 0) {
