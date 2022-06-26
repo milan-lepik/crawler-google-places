@@ -300,8 +300,12 @@ module.exports.enqueueAllPlaceDetails = async ({
         const error = /** @type {Error} */ (e);
         log.warning(`click#searchbox-searchbutton ${error.message}`);
         try {
+             /** @type {Puppeteer.ElementHandle<HTMLElement> | null} */
             const retryClickSearchButton = await page.$('#searchbox-searchbutton');
-            await retryClickSearchButton?.evaluate(b => b.click());
+            if (!retryClickSearchButton) {
+                throw new Error('Retry click search button was not found on the page.');
+            }
+            await retryClickSearchButton.evaluate(b => b.click());
         } catch (eOnRetry) {
             const eOnRetryError = /** @type {Error} */ (eOnRetry);
             log.warning(`retryClickSearchButton ${eOnRetryError.message}`);
