@@ -34,7 +34,7 @@ Apify.main(async () => {
         // browser and request options
         pageLoadTimeoutSec = 60, useChrome = false, maxConcurrency, maxPagesPerBrowser = 1, maxPageRetries = 6,
         // Misc
-        proxyConfig, debug = false, language = 'en', useStealth = false, headless = true,
+        proxyConfig, debug = false, language = 'en', headless = true,
         // walker is undocumented feature added by jakubdrobnik, we need to test it and document it
         walker,
 
@@ -202,31 +202,9 @@ Apify.main(async () => {
 
     const proxyConfiguration = await Apify.createProxyConfiguration(proxyConfig);
 
-    /**
-     * `stealthOptions` property is not declared in `launchContext`.
-     * It is passed to Puppeteer launcher through `launchContext`:
-     * `const puppeteerLauncher = new PuppeteerLauncher(launchContext);`
-     * `puppeteerLauncher.stealthOptions`
-     */
-     const stealthOptionsWrapper = {
-        stealthOptions: {
-            addLanguage: false,
-            addPlugins: false,
-            emulateConsoleDebug: false,
-            emulateWebGL: false,
-            hideWebDriver: true,
-            emulateWindowFrame: false,
-            hackPermissions: false,
-            mockChrome: false,
-            mockDeviceMemory: false,
-            mockChromeInIframe: false,
-        }
-    }
-
     /** @type {typedefs.CrawlerOptions} */
     const crawlerOptions = {
         requestQueue,
-        // @ts-ignore
         proxyConfiguration,
         maxConcurrency,
         useSessionPool: true,
@@ -239,11 +217,10 @@ Apify.main(async () => {
         // NOTE: Before 1.0, there was useIncognitoPages: true, let's hope it was not needed
         browserPoolOptions: {
             maxOpenPagesPerBrowser: maxPagesPerBrowser,
+            useFingerprints: true,
         },
         launchContext: {
             useChrome,
-            stealth: useStealth,
-            ...stealthOptionsWrapper,
             launchOptions: {
                 headless,
                 args: [
