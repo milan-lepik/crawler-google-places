@@ -33,7 +33,7 @@ const CHECK_LOAD_OUTCOMES_EVERY_MS = 500;
  *   exportUrlsDeduper: ExportUrlsDeduper | undefined,
  *   crawler: Apify.PuppeteerCrawler,
  * }} options
- * @return {(response: Puppeteer.Response) => Promise<any>}
+ * @return {(response: Puppeteer.HTTPResponse, pageStats: typedefs.PageStats) => Promise<any>}
  */
 const enqueuePlacesFromResponse = (options) => {
     const { page, requestQueue, searchString, request, exportPlaceUrls, geolocation,
@@ -41,7 +41,7 @@ const enqueuePlacesFromResponse = (options) => {
     return async (response, pageStats) => {
         const url = response.url();
         const isSearchPage = url.match(/google\.[a-z.]+\/search/);
-        const isDetailPreviewPage = url.match(/google\.[a-z.]+\/maps\/preview\/place/);
+        const isDetailPreviewPage = !!url.match(/google\.[a-z.]+\/maps\/preview\/place/);
         if (!isSearchPage && !isDetailPreviewPage) {
             return;
         }
@@ -97,7 +97,7 @@ const enqueuePlacesFromResponse = (options) => {
                     if (!maxCrawledPlacesTracker.canScrapeMore()) {
                         break;
                     }
-                    
+
                     const wasAlreadyPushed = exportUrlsDeduper?.testDuplicateAndAdd(placePaginationData.placeId);
                     let shouldScrapeMore = true;
                     if (!wasAlreadyPushed) {
@@ -117,7 +117,7 @@ const enqueuePlacesFromResponse = (options) => {
                         await crawler.autoscaledPool?.abort();
                         break;
                     }
-                } else {                   
+                } else {
                     const searchKey = searchString || request.url;
                     if (!maxCrawledPlacesTracker.setEnqueued(searchKey)) {
                         log.warning(`[SEARCH]: Finishing search because we enqueued more than maxCrawledPlaces `
@@ -160,7 +160,8 @@ const enqueuePlacesFromResponse = (options) => {
                     + `places (unique & correct/found) + ${numberOfAds} ads `
                     + `for this page. Total for this search: ${typeOfResultsCountTotal}/${pageStats.totalFound}  --- ${page.url()}`)
             }
-        } catch (error) {
+        } catch (e) {
+            const error = /** @type {Error} */ (e);
             const message = `Unexpected error during response processing: ${error.message}`;
             pageStats.error = { message, responseStatus, responseBody };
         }
@@ -205,10 +206,10 @@ const waitForSearchResults = async (page) => {
         const hasNextPage = await page.$(NEXT_BUTTON_SELECTOR);
         if (hasNextPage) {
             return { hasNextPage: true };
-        }        
+        }
 
         await page.waitForTimeout(CHECK_LOAD_OUTCOMES_EVERY_MS);
-    } 
+    }
 }
 
 /**
@@ -237,6 +238,13 @@ module.exports.enqueueAllPlaceDetails = async ({
 
     let numberOfEmptyDataPages = 0;
 
+
+
+    // The error property is a way to propagate errors from the response handler to this synchronous context
+    /** @type {typedefs.PageStats} */
+    const pageStats = { error: null, isDataPage: false, enqueued: 0, pushed: 0, totalEnqueued: 0,
+        totalPushed: 0, found: 0, totalFound: 0, pageNum: 1 }
+
     const responseHandler = enqueuePlacesFromResponse({
         page,
         requestQueue,
@@ -251,10 +259,6 @@ module.exports.enqueueAllPlaceDetails = async ({
         crawler,
     });
 
-    // The error property is a way to propagate errors from the response handler to this synchronous context
-    const pageStats = { error: null, isDataPage: false, enqueued: 0, pushed: 0, totalEnqueued: 0,
-        totalPushed: 0, found: 0, totalFound: 0, pageNum: 1 }
-    
     page.on('response', async (response) => {
         await responseHandler(response, pageStats);
         if (pageStats.isDataPage && pageStats.enqueued === 0 && pageStats.pushed === 0) {
@@ -269,7 +273,7 @@ module.exports.enqueueAllPlaceDetails = async ({
         try {
             await page.click('button[aria-label*="Dismiss"]')
         } catch (e) {
-            
+
         }
         // if specified by user input call OCR to recognize pins
         const isPinsFromOCR = searchString.endsWith('_ocr');
@@ -293,12 +297,18 @@ module.exports.enqueueAllPlaceDetails = async ({
     try {
         await page.click('#searchbox-searchbutton');
     } catch (e) {
-        log.warning(`click#searchbox-searchbutton ${e?.message}`);
+        const error = /** @type {Error} */ (e);
+        log.warning(`click#searchbox-searchbutton ${error.message}`);
         try {
+             /** @type {Puppeteer.ElementHandle<HTMLElement> | null} */
             const retryClickSearchButton = await page.$('#searchbox-searchbutton');
+            if (!retryClickSearchButton) {
+                throw new Error('Retry click search button was not found on the page.');
+            }
             await retryClickSearchButton.evaluate(b => b.click());
         } catch (eOnRetry) {
-            log.warning(`retryClickSearchButton ${eOnRetry?.message}`);
+            const eOnRetryError = /** @type {Error} */ (eOnRetry);
+            log.warning(`retryClickSearchButton ${eOnRetryError.message}`);
             await page.keyboard.press('Enter');
         }
     }
@@ -353,7 +363,7 @@ module.exports.enqueueAllPlaceDetails = async ({
         }
 
         if (!maxCrawledPlacesTracker.canEnqueueMore(searchString || request.url)) {
-            // no need to log here because it is logged already in 
+            // no need to log here because it is logged already in
             return;
         }
 
@@ -374,7 +384,7 @@ module.exports.enqueueAllPlaceDetails = async ({
                 + `${parseZoomFromUrl(page.url())} --- ${searchString} - ${request.url}`);
             return;
         }
-            
+
         if (hasNextPage) {
             // NOTE: puppeteer API click() didn't work :|
             await page.evaluate((sel) => $(sel).click(), NEXT_BUTTON_SELECTOR);

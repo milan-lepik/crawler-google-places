@@ -34,7 +34,7 @@ Apify.main(async () => {
         // browser and request options
         pageLoadTimeoutSec = 60, useChrome = false, maxConcurrency, maxPagesPerBrowser = 1, maxPageRetries = 6,
         // Misc
-        proxyConfig, debug = false, language = 'en', useStealth = false, headless = true,
+        proxyConfig, debug = false, language = 'en', headless = true,
         // walker is undocumented feature added by jakubdrobnik, we need to test it and document it
         walker,
 
@@ -46,7 +46,7 @@ Apify.main(async () => {
         // For some rare places, Google doesn't show all reviews unless in newest sorting
         reviewsSort = 'newest', reviewsStartDate,
         // Fields used by Heyrick only, not present in the schema (too narrow use-case for now)
-        cachePlaces = false, useCachedPlaces = false, cacheKey,
+        cachePlaces = false, useCachedPlaces = false, cacheKey = '',
 
         // Personal data
         scrapeReviewerName = true, scrapeReviewerId = true, scrapeReviewerUrl = true,
@@ -79,7 +79,7 @@ Apify.main(async () => {
         exportUrlsDeduper = new ExportUrlsDeduper();
         await exportUrlsDeduper.initialize(Apify.events);
     }
-    
+
     // Requests that are used in the queue, we persist them to skip this step after migration
     const startRequests = /** @type {Apify.RequestOptions[]} */ (await Apify.getValue('START-REQUESTS')) || [];
 
@@ -124,7 +124,7 @@ Apify.main(async () => {
             const updatedStartUrls = await parseRequestsFromStartUrls(startUrls);
             const validStartRequests = getValidStartRequests(updatedStartUrls);
             validStartRequests.forEach((req) => startRequests.push(req));
-            
+
         } else if (searchStringsArray?.length) {
             for (const searchString of searchStringsArray) {
                 // Sometimes users accidentally pass empty strings
@@ -205,7 +205,6 @@ Apify.main(async () => {
     /** @type {typedefs.CrawlerOptions} */
     const crawlerOptions = {
         requestQueue,
-        // @ts-ignore
         proxyConfiguration,
         maxConcurrency,
         useSessionPool: true,
@@ -218,22 +217,10 @@ Apify.main(async () => {
         // NOTE: Before 1.0, there was useIncognitoPages: true, let's hope it was not needed
         browserPoolOptions: {
             maxOpenPagesPerBrowser: maxPagesPerBrowser,
+            useFingerprints: true,
         },
         launchContext: {
             useChrome,
-            stealth: useStealth,
-            stealthOptions: {
-                addLanguage: false,
-                addPlugins: false,
-                emulateConsoleDebug: false,
-                emulateWebGL: false,
-                hideWebDriver: true,
-                emulateWindowFrame: false,
-                hackPermissions: false,
-                mockChrome: false,
-                mockDeviceMemory: false,
-                mockChromeInIframe: false,
-            },
             launchOptions: {
                 headless,
                 args: [

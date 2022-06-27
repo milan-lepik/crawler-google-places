@@ -1,10 +1,10 @@
-const Apify = require('apify'); // eslint-disable-line no-unused-vars
+const Apify = require('apify');
 
-const Stats = require('./stats'); // eslint-disable-line no-unused-vars
-const ErrorSnapshotter = require('./error-snapshotter'); // eslint-disable-line no-unused-vars
-const PlacesCache = require('./places_cache'); // eslint-disable-line no-unused-vars
-const MaxCrawledPlacesTracker = require('./max-crawled-places'); // eslint-disable-line no-unused-vars
-const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-line no-unused-vars
+const Stats = require('./stats');
+const ErrorSnapshotter = require('./error-snapshotter');
+const PlacesCache = require('./places_cache');
+const MaxCrawledPlacesTracker = require('./max-crawled-places');
+const ExportUrlsDeduper = require('./export-urls-deduper');
 
 /**
  * Options for the scraping process
@@ -157,6 +157,24 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
 
 /**
  * @typedef {{
+ * error: {
+ *  message: string,
+ *  responseStatus?: number,
+ *  responseBody?: string
+ * } | null
+ * isDataPage: boolean,
+ * enqueued: number,
+ * pushed: number,
+ * totalEnqueued: number,
+ * totalPushed: number,
+ * found: number,
+ * totalFound: number,
+ * pageNum: number
+ * }} PageStats
+ */
+
+/**
+ * @typedef {{
  * noOutcomeLoaded?: boolean,
  * isBadQuery?: boolean,
  * hasNoResults?: boolean,
@@ -170,8 +188,8 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
 
 /**
  * @typedef {{
- * lat: number,
- * lng: number,
+ * lat: number | null,
+ * lng: number | null,
  * }} Coordinates
  */
 
@@ -229,7 +247,7 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  *   type: string,
  *   coordinates: any,
  *   geometry: any,
- *   radiusKm: number | undefined,
+ *   radiusKm?: number,
  * }} Geolocation
  */
 
@@ -261,6 +279,15 @@ const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-li
  * popularTimesLivePercent: number,
  * popularTimesHistogram: Object.<string, Array<{ hour: number, occupancyPercent: 0 }>>,
  * }} PopularTimesOutput
+ */
+
+/**
+ *  @typedef {{
+ * zoom: number | string,
+ * step: number,
+ * bounds: any
+ * }} Walker
+ *
  */
 
 module.exports = {};

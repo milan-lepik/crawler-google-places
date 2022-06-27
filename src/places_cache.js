@@ -8,14 +8,18 @@ const typedefs = require('./typedefs');
 // TODO: Re-evaluate if we should not remove this
 module.exports = class PlacesCache {
     cachePlaces;
+
+    /** @type {Record<string, any>} */
     allPlaces = {};
     isLoaded = false;
 
     /**
-     * @param options 
-     * @property {boolean} cachePlaces
-     * @property {string} cacheKey
-     * @property {boolean} useCachedPlaces
+     *
+     * @param {{
+     *  cachePlaces: boolean,
+     *  cacheKey: string,
+     *  useCachedPlaces: boolean
+     * }} options
      */
     constructor({ cachePlaces = false, cacheKey, useCachedPlaces }) {
         this.cachePlaces = cachePlaces;
@@ -48,7 +52,9 @@ module.exports = class PlacesCache {
      */
     async loadPlaces() {
         const allPlacesStore = await this.placesStore();
-        return (await allPlacesStore.getValue(this.keyName())) || {};
+
+        // @ts-ignore
+        return allPlacesStore ? await allPlacesStore.getValue(this.keyName()) : {};
     }
 
     /**
@@ -92,11 +98,11 @@ module.exports = class PlacesCache {
 
     /**
      * @param {string} placeId
-     * @returns {typedefs.Coordinates|null}
+     * @returns {typedefs.Coordinates | null}
      */
     getLocation(placeId) {
         if (!this.cachePlaces || !this.place(placeId)) return null;
-        return this.place(placeId).location;
+        return (this.place(placeId) || {}).location || null;
     }
 
     /**
@@ -110,8 +116,10 @@ module.exports = class PlacesCache {
 
             const allPlacesStore = await this.placesStore();
             const reloadedPlaces = await this.loadPlaces();
-            // @ts-ignore
+
             const newPlaces = { ...reloadedPlaces, ...this.allPlaces };
+
+            // @ts-ignore
             await allPlacesStore.setValue(this.keyName(), newPlaces);
             log.info('[CACHE] places saved');
         }
@@ -125,12 +133,16 @@ module.exports = class PlacesCache {
      * @returns {string[]}
      */
     placesInPolygon(geolocation, maxCrawledPlaces, keywords = []) {
+        /** @type {string[]} */
         const arr = [];
+
         if (!this.cachePlaces || !this.useCachedPlaces) return arr;
         for (const placeId in this.allPlaces) {
             // check if cached location is desired polygon and has at least one search string currently needed
+            const place = this.place(placeId) || { keywords: [] };
+
             if (checkInPolygon(geolocation, this.getLocation(placeId)) &&
-                (this.place(placeId).keywords.length === 0 || this.place(placeId).keywords.filter(x => keywords.includes(x)).length > 0))
+                (place.keywords.length === 0 || place.keywords.filter((x) => keywords.includes(x)).length > 0))
                 arr.push(placeId);
             if (maxCrawledPlaces && maxCrawledPlaces !== 0 && arr.length >= maxCrawledPlaces)
                 break;

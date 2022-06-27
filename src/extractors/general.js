@@ -114,9 +114,10 @@ const parseJsonResult = (placeData, isAdvertisement) => {
             }
         });
     } catch (e) {
+        const error = /** @type {Error} */ (e);
         return {
             placesPaginationData,
-            error: `Failed parsing JSON response: ${e.message}`,
+            error: `Failed parsing JSON response: ${error.message}`,
         };
     }
     return { placesPaginationData, error: null };
@@ -196,10 +197,10 @@ module.exports.extractPopularTimes = ({ jsonData }) => {
         popularTimesHistogram: {},
     };
 
-    // Format of histogram we want for output is 
+    // Format of histogram we want for output is
     // { day: [{ hour, occupancyPercent}, ...], ...}
 
-    // Format Google has is 
+    // Format Google has is
     // [day][1][hour] => [0] for hour, [1] for occupancy
 
     const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -211,7 +212,7 @@ module.exports.extractPopularTimes = ({ jsonData }) => {
         if (Array.isArray(hoursData)) {
             for (const hourData of hoursData) {
                 const hourOutput = { hour: hourData[0], occupancyPercent: hourData[1] };
-                output.popularTimesHistogram[DAYS[i]].push(hourOutput) 
+                output.popularTimesHistogram[DAYS[i]].push(hourOutput)
             }
         }
     });
@@ -394,11 +395,11 @@ module.exports.extractAdditionalInfo = async ({ page, placeUrl, jsonData }) => {
 
 /**
  * Extracts additional infos for hotels and other categories according to the passed jsonData.
- * 
- * Note: For hotels the jsonData often contains more infos than the Google-Maps page. 
+ *
+ * Note: For hotels the jsonData often contains more infos than the Google-Maps page.
  * For some other places sometimes also additionInfos are in jsonData but not displayed on the page.
  * It never seems to be the other way around.
- * 
+ *
  * @param {{
  *    jsonData: any[]
  * }} options
@@ -424,7 +425,7 @@ const extractAdditionalInfoFromJson = ({ jsonData }) => {
 
 /**
  * Extracts additional infos which are visible for Google categories != hotel
- * 
+ *
  * @param {{
  *    jsonData: any[]
  * }} options
@@ -446,11 +447,11 @@ const extractAdditionalInfoBasicFromJson = ({ jsonData }) => {
             // @ts-ignore
             if (typeof option?.[1] !== 'string') {
                 throw new TypeError("wrong format for option name");
-            } 
+            }
             if (typeof option?.[2]?.[2]?.[0] === 'number'){
                 return { [option[1]]: option[2][2][0] == 1 }
-            } 
-            // accepted types of credit cards are listed in JSON 
+            }
+            // accepted types of credit cards are listed in JSON
             // (although the Google Maps Frontend doesn't show the specific types)
             if (option?.[0] === "/geo/type/establishment_poi/pay_credit_card_types_accepted") {
                 const acceptedCards = option?.[2]?.[4]?.[1]?.[0]?.[0]
@@ -484,7 +485,7 @@ const extractAdditionalInfoBasicFromJson = ({ jsonData }) => {
 /**
  * Extracts the hotel details from the passed jsonData.
  * The return value will have the key "Amenities" to make it consistent to the old scraping from HTML.
- * 
+ *
  * @param {{
  *    jsonData: any[]
  * }} options

@@ -40,7 +40,7 @@ function getPolygonFromBoundingBox(boundingbox) {
  * @param {typedefs.Coordinates | null | undefined} coordinates
  */
 module.exports.checkInPolygon = (geolocation, coordinates) => {
-    if (!geolocation || !coordinates) {
+    if (!geolocation || !coordinates || !coordinates.lng || !coordinates.lat) {
         return true;
     }
     const point = turf.point([coordinates.lng, coordinates.lat]);
@@ -55,8 +55,9 @@ module.exports.checkInPolygon = (geolocation, coordinates) => {
 
 /**
  * @param {typedefs.Geolocation} geolocation
+ * @returns {any}
  */
-function getPolygons(geolocation, ) {
+function getPolygons(geolocation) {
     const { coordinates, type, geometry, radiusKm = 5 } = geolocation;
     if (type === GEO_TYPES.POLYGON) {
         return [turf.polygon(coordinates)];
@@ -84,7 +85,7 @@ function getPolygons(geolocation, ) {
     }
 
     // Multipolygon
-    return coordinates.map((coords) => turf.polygon(coords));
+    return coordinates.map((/** @type any*/ coords) => turf.polygon(coords));
 }
 
 // Sadly, even some bigger cities (Bremer­haven) are not found by the API
@@ -132,7 +133,7 @@ function distanceByZoom(lat, zoom) {
  */
 module.exports.getGeoJson = (geolocationFull) => {
     let { geojson, boundingbox } = geolocationFull;
-    
+
     if (geojson) {
         return geojson;
     }
@@ -144,7 +145,7 @@ module.exports.getGeoJson = (geolocationFull) => {
         coordinates: getPolygonFromBoundingBox(boundingbox),
         type: GEO_TYPES.POLYGON,
         geometry: undefined,
-    }; 
+    };
 }
 
 /**
@@ -174,17 +175,21 @@ module.exports.findPointsInPolygon = async (geolocation, zoom) => {
     try {
         const polygons = getPolygons(geolocation);
 
-        polygons.forEach((polygon) => {
+        polygons.forEach((
+            /** @type {turf.Feature<turf.Polygon | turf.MultiPolygon> | turf.Polygon | turf.MultiPolygon} */ polygon) => {
             const bbox = turf.bbox(polygon);
             // distance in meters per pixel * viewport / 1000 meters
             let distanceKilometers = distanceByZoom(bbox[3], zoom) * (800 / 1000);
             // Creates grid of points inside given polygon
-            let pointGrid;
+            /** @type {turf.FeatureCollection<turf.Geometry, turf.Properties> | null} */
+            let pointGrid = null;
             // point grid can be empty for to large distance.
             while (distanceKilometers > 0) {
                 log.debug('distanceKilometers', { distanceKilometers });
                 // Use lower distance for points
                 const distance = geolocation.type === GEO_TYPES.POINT ? distanceKilometers / 2 : distanceKilometers;
+
+                /** @type {{ units: turf.Units, mask: turf.Feature<turf.Polygon | turf.MultiPolygon> | turf.Polygon | turf.MultiPolygon }} */
                 const options = {
                     units: 'kilometers',
                     mask: polygon,
@@ -194,14 +199,19 @@ module.exports.findPointsInPolygon = async (geolocation, zoom) => {
                 if (pointGrid.features && pointGrid.features.length > 0) break;
                 distanceKilometers -= 1;
             }
-            pointGrid.features.forEach((feature) => {
-                const [lon, lat] = feature.geometry.coordinates;
-                points.push({ lon, lat });
-                // points.push(feature); // http://geojson.io is nice tool to check found points on map
-            });
+            if (pointGrid) {
+                pointGrid.features.forEach((feature) => {
+                    const { geometry } = feature;
+                    if (geometry) {
+                        const [lon, lat] = geometry.coordinates;
+                        points.push({ lon, lat });
+                        // points.push(feature); // http://geojson.io is nice tool to check found points on map
+                    }
+                });
+            }
         });
     } catch (e) {
-        log.exception(e, 'Failed to create point grid', { location, zoom });
+        log.exception(/** @type {Error} */ (e), 'Failed to create point grid', { location, zoom });
     }
     return points;
 }

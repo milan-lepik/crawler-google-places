@@ -27,19 +27,22 @@ const enlargeImageUrls = (imageUrls) => {
 };
 
 /**
+ *
  * @param {{
  * page: Puppeteer.Page,
  * maxImages: number,
  * targetReviewsCount: Number,
  * placeUrl: String
- }} options
+ * }} options
+ * @returns
  */
 module.exports.extractImages = async ({ page, maxImages, targetReviewsCount, placeUrl }) => {
     if (!maxImages || maxImages === 0) {
         return undefined;
     }
 
-    let resultImageUrls;
+    /** @type {string[]} */
+    let resultImageUrls = [];
 
     const mainImageSel = '[jsaction="pane.heroHeaderImage.click"]';
     let mainImage;
@@ -53,11 +56,11 @@ module.exports.extractImages = async ({ page, maxImages, targetReviewsCount, pla
     if (maxImages === 1) {
         // @ts-ignore
         const imageUrl = await mainImage.$eval('img', (el) => el.src);
-        resultImageUrls = [imageUrl];
+        resultImageUrls.push(imageUrl);
     }
     if (maxImages > 1) {
         await sleep(2000);
-        await mainImage.click();
+        await mainImage?.click();
         let lastImage = null;
         let pageBottom = 10000;
         let imageUrls = [];
@@ -75,7 +78,7 @@ module.exports.extractImages = async ({ page, maxImages, targetReviewsCount, pla
             imageUrls = await page.evaluate(() => {
                 /** @type {string[]} */
                 const urls = [];
-                $('[data-photo-index]').each((i, el) => {
+                $('[data-photo-index]').each((_i, el) => {
                     // @ts-ignore
                     const urlMatch = $(el).find('div').eq(0).attr('style').match(/url\("(.*)"\)/);
                     if (!urlMatch) return;

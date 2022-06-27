@@ -1,4 +1,5 @@
 const Apify = require('apify');
+const EventEmitter = require('events');
 
 const EXPORT_URLS_DEDUP_KV_RECORD = 'EXPORT-URLS-DEDUP';
 
@@ -9,7 +10,7 @@ module.exports = class ExportUrlsDeduper {
         this.dedupSet = new Set();
     }
 
-    async initialize(events) {
+    async initialize(/** @type {EventEmitter} */ events) {
         this.allPlaces = await this.loadFromStore();
 
         events.on('persistState', async () => {
@@ -18,7 +19,7 @@ module.exports = class ExportUrlsDeduper {
     }
 
     async loadFromStore() {
-        const dedupArr = await Apify.getValue(EXPORT_URLS_DEDUP_KV_RECORD);
+        const dedupArr = /** @type {string[] | null} */ (await Apify.getValue(EXPORT_URLS_DEDUP_KV_RECORD));
         if (dedupArr) {
             for (const placeId of dedupArr) {
                 this.dedupSet.add(placeId);
@@ -33,7 +34,7 @@ module.exports = class ExportUrlsDeduper {
 
     /**
      * Returns true if the place was already there
-     * @param {string} placeId 
+     * @param {string} placeId
      * @returns {boolean}
      */
     testDuplicateAndAdd(placeId) {
