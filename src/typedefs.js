@@ -178,9 +178,8 @@ const ExportUrlsDeduper = require('./export-urls-deduper');
  * noOutcomeLoaded?: boolean,
  * isBadQuery?: boolean,
  * hasNoResults?: boolean,
- * isDetailPage?: boolean,
- * isNextPaginationDisabled?: boolean,
- * hasNextPage?: boolean,
+ * isPlaceDetail?: boolean,
+ * hasResults?: boolean,
  * }} SearchResultOutcome
  */
 
