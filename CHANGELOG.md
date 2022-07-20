@@ -1,3 +1,7 @@
+# 2022-07-22
+*Fixes*
+- Search pages now use scrolling instead of pagination. This makes the crawling a little slower and reduces the maximum number of places per page from 400 to 120. Use geolocation with zoom to work around this reduction. We might increase the default zoom by 1. in the near future.
+
 # 2022-05-19
 *Features*
 - Added `gasPrices` to output. Available only for gas stations in US to the best of our knowledge.
