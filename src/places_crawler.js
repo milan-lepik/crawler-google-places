@@ -123,8 +123,12 @@ module.exports.setUpCrawler = ({ crawlerOptions, scrapingOptions, helperClasses 
             // Never block images for allPlacesNoSearch to keep pins visible
             if (!allPlacesNoSearchAction && !maxImages) {
                 // https://lh5.googleusercontent.com/p/AF1QipMInapT8CB8U-QFRfRceZtzxbX5QRw0NJ08Fc7t=w408-h272-k-no
+                // We need map working for search scrolling
+                const urlPatterns = request.userData.label === 'PLACE'
+                    ? ['/maps/vt/', '/earth/BulkMetadata/', 'googleusercontent.com']
+                    : [];
                 await blockRequests(page, {
-                    urlPatterns: ['/maps/vt/', '/earth/BulkMetadata/', 'googleusercontent.com'],
+                    urlPatterns,
                 });
             }
             

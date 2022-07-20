@@ -10,7 +10,7 @@ const MaxCrawledPlacesTracker = require('./max-crawled-places'); // eslint-disab
 const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-line no-unused-vars
 
 const { sleep, log } = Apify.utils;
-const { PLACE_TITLE_SEL, NEXT_BUTTON_SELECTOR, NO_RESULT_XPATH } = require('./consts');
+const { MAX_PLACES_PER_PAGE, PLACE_TITLE_SEL, NO_RESULT_XPATH } = require('./consts');
 const { waitForGoogleMapLoader, parseZoomFromUrl, moveMouseThroughPage, getScreenshotPinsFromExternalActor } = require('./utils');
 const { parseSearchPlacesResponseBody } = require('./extractors/general');
 const { checkInPolygon } = require('./polygon');
@@ -156,7 +156,7 @@ const enqueuePlacesFromResponse = (options) => {
                 const typeOfResultAction = exportPlaceUrls ? 'Pushed' : 'Enqueued';
                 const typeOfResultsCount = exportPlaceUrls ? pageStats.pushed : pageStats.enqueued;
                 const typeOfResultsCountTotal = exportPlaceUrls ? pageStats.totalPushed : pageStats.totalEnqueued;
-                log.info(`[SEARCH][${searchString}][PAGE: ${pageStats.pageNum}]: ${typeOfResultAction} ${typeOfResultsCount}/${pageStats.found} `
+                log.info(`[SEARCH][${searchString}][SCROLL: ${pageStats.pageNum}]: ${typeOfResultAction} ${typeOfResultsCount}/${pageStats.found} `
                     + `places (unique & correct/found) + ${numberOfAds} ads `
                     + `for this page. Total for this search: ${typeOfResultsCountTotal}/${pageStats.totalFound}  --- ${page.url()}`)
             }
@@ -192,20 +192,15 @@ const waitForSearchResults = async (page) => {
             return { hasNoResults: true };
         }
 
-        const isDetailPage = await page.$(PLACE_TITLE_SEL);
-        if (isDetailPage) {
-            return { isDetailPage: true };
-        }
-
-        const isNextPaginationDisabled = await page.$(`${NEXT_BUTTON_SELECTOR}:disabled`);
-        if (isNextPaginationDisabled) {
-            return { isNextPaginationDisabled: true };
+        const isPlaceDetail = await page.$(PLACE_TITLE_SEL);
+        if (isPlaceDetail) {
+            return { isPlaceDetail: true }
         }
 
         // This is the happy path
-        const hasNextPage = await page.$(NEXT_BUTTON_SELECTOR);
-        if (hasNextPage) {
-            return { hasNextPage: true };
+        const hasSearchResults = await page.$$('a.hfpxzc');
+        if (hasSearchResults.length > 0) {
+            return { hasResults: true };
         }
 
         await page.waitForTimeout(CHECK_LOAD_OUTCOMES_EVERY_MS);
@@ -236,10 +231,6 @@ module.exports.enqueueAllPlaceDetails = async ({
     const { geolocation, maxAutomaticZoomOut, exportPlaceUrls } = scrapingOptions;
     const { stats, placesCache, maxCrawledPlacesTracker, exportUrlsDeduper } = helperClasses;
 
-    let numberOfEmptyDataPages = 0;
-
-
-
     // The error property is a way to propagate errors from the response handler to this synchronous context
     /** @type {typedefs.PageStats} */
     const pageStats = { error: null, isDataPage: false, enqueued: 0, pushed: 0, totalEnqueued: 0,
@@ -261,9 +252,6 @@ module.exports.enqueueAllPlaceDetails = async ({
 
     page.on('response', async (response) => {
         await responseHandler(response, pageStats);
-        if (pageStats.isDataPage && pageStats.enqueued === 0 && pageStats.pushed === 0) {
-            numberOfEmptyDataPages += 1;
-        }
     });
 
     // Special case that works completely differently
@@ -317,49 +305,58 @@ module.exports.enqueueAllPlaceDetails = async ({
 
     const startZoom = /** @type {number} */ (parseZoomFromUrl(page.url()));
 
+    const logBase = `[SEARCH][${searchString}]`;
+
+    // There can be many states other than loaded results
+    const { noOutcomeLoaded, hasNoResults, isBadQuery, isPlaceDetail } = await waitForSearchResults(page);
+
+    if (noOutcomeLoaded) {
+        throw new Error(`${logBase} Don't recognize the loaded content - ${request.url}`);
+    }
+
+    if (isBadQuery) {
+        log.warning(`${logBase} Finishing search because this query yielded no results - ${request.url}`);
+        return;
+    }
+
+    if (hasNoResults) {
+        log.warning(`${logBase} Finishing search because there are no results for this query - ${request.url}`);
+        return;
+    } 
+
+    // If we search for very specific place, it loads it directly
+    // but enqueuing will still process it in separate page
+    if (isPlaceDetail) {
+        log.warning(`${logBase} Finishing scroll because we loaded a single place page directly - ${request.url}`);
+        return;
+    }
+
+    let numberOfEmptyScrolls = 0;
+    let lastNumberOfResultsLoadedTotally = 0;
+
+    // Main scrolling/enqueueing loop starts
     for (;;) {
-        const logBase = `[SEARCH][${searchString}][PAGE: ${pageStats.pageNum}]:`
-        // This is here as hard protection because sometimes Google gets into loading loop after clicking too fast
-        if (numberOfEmptyDataPages >= 5) {
-            log.warning(`${logBase} Finishing search because it reached an empty data page (no more results) --- ${request.url}`);
+        const logBaseScroll = `${logBase}[SCROLL: ${pageStats.pageNum}]:`
+        if (lastNumberOfResultsLoadedTotally === pageStats.totalFound) {
+            numberOfEmptyScrolls++;
+        } else {
+            numberOfEmptyScrolls = 0;
+        }
+        lastNumberOfResultsLoadedTotally = pageStats.totalFound;
+        // They load via XHR only each batch of 20 places so there will be about 6 of empty scrolls
+        // but should not be too many
+        if (numberOfEmptyScrolls >= 10) {
+            log.warning(`${logBaseScroll} Finishing scroll with ${pageStats.totalFound} results because scrolling doesn't yiled any more results (and is less than maximum ${MAX_PLACES_PER_PAGE}) --- ${request.url}`);
             return;
         }
-
-        const {
-            noOutcomeLoaded,
-            isBadQuery,
-            hasNoResults,
-            isDetailPage,
-            isNextPaginationDisabled,
-            hasNextPage,
-        } = await waitForSearchResults(page);
 
         if (pageStats.error) {
             const snapshotKey = `SEARCH-RESPONSE-ERROR-${Math.random()}`;
             await Apify.setValue(snapshotKey, pageStats.error.responseBody, { contentType: 'text/plain' });
             const snapshotUrl = `https://api.apify.com/v2/key-value-stores/${Apify.getEnv().defaultKeyValueStoreId}/records/ERROR-SNAPSHOTTER-STATE`
-            throw `${logBase} Error occured, will retry the page: ${pageStats.error.message}\n`
+            throw `${logBaseScroll} Error occured, will retry the page: ${pageStats.error.message}\n`
                 + ` Storing response body for debugging: ${snapshotUrl}\n`
                 + `${request.url}`;
-        }
-
-        if (noOutcomeLoaded) {
-            throw new Error(`${logBase} Don't recognize the loaded content - ${request.url}`);
-        }
-
-        if (isNextPaginationDisabled) {
-            log.warning(`${logBase} Finishing search because there are no more pages - ${request.url}`);
-            return;
-        } else if (isBadQuery) {
-            log.warning(`${logBase} Finishing search because this query yields no results - ${request.url}`);
-            return;
-        } else if (hasNoResults) {
-            log.warning(`${logBase} Finishing search because it reached an empty page (no more results) - ${request.url}`);
-            return;
-        } else if (isDetailPage) {
-            // Direct details are processed in enqueueing so we can finish here
-            log.warning(`${logBase} Finishing search because we loaded a single place page directly - ${request.url}`);
-            return;
         }
 
         if (!maxCrawledPlacesTracker.canEnqueueMore(searchString || request.url)) {
@@ -379,19 +376,26 @@ module.exports.enqueueAllPlaceDetails = async ({
         }
 
         if (finishBecauseAutoZoom) {
-            log.warning(`${logBase} Finishing search because Google zoomed out `
+            log.warning(`${logBaseScroll} Finishing search because Google zoomed out `
                 + 'further than maxAutomaticZoomOut. Current zoom: '
                 + `${parseZoomFromUrl(page.url())} --- ${searchString} - ${request.url}`);
             return;
         }
 
-        if (hasNextPage) {
-            // NOTE: puppeteer API click() didn't work :|
-            await page.evaluate((sel) => $(sel).click(), NEXT_BUTTON_SELECTOR);
-            // Safe wait here so we don't get into crazy loop
-            await page.waitForTimeout(1000);
-            await waitForGoogleMapLoader(page);
-            pageStats.pageNum++;
+        if (pageStats.totalFound >= MAX_PLACES_PER_PAGE) {
+            log.warning(`${logBaseScroll} Finishing scrolling with ${pageStats.totalFound} results for this page because we found maximum (${MAX_PLACES_PER_PAGE}) places per page - ${request.url}`);
+            return;
         }
+
+        
+        // We wait between 2 and 4 sec to simulate real scrolling
+        await page.waitForTimeout(2000 + Math.ceil(2000 * Math.random()))
+        // We need to have mouse in the left scrolling panel
+        await page.mouse.move(10, 300);
+        await page.waitForTimeout(100);
+        // scroll down the panel
+        await page.mouse.wheel({ deltaY: 800 });
+        // await waitForGoogleMapLoader(page);
+        pageStats.pageNum++;
     }
 };

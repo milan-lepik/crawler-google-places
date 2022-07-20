@@ -1,5 +1,8 @@
 exports.DEFAULT_TIMEOUT = 60 * 1000; // 60 sec
 
+// Max scrollnig results, this might change in the future
+exports.MAX_PLACES_PER_PAGE = 120;
+
 exports.LISTING_PAGINATION_KEY = 'lisState';
 exports.MAX_PAGE_RETRIES = 6;
 
