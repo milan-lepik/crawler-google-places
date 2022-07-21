@@ -401,8 +401,8 @@
               "useApifyProxy": true
           },
           "editor": "proxy",
-          "sectionCaption": "Browser, page and proxy settings",
-          "sectionDescription": "How the browsers will behave during the scraping process."
+          "sectionCaption": "Proxy settings",
+          "sectionDescription": "Automatic proxy works well for Google Maps. Unless you need to use a custom proxy, there is no need to do any change."
       },
       "allPlacesNoSearchAction": {
         "title": "Scrape all places (no search term)",
