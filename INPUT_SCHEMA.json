@@ -404,38 +404,6 @@
           "sectionCaption": "Browser, page and proxy settings",
           "sectionDescription": "How the browsers will behave during the scraping process."
       },
-      "maxConcurrency": {
-          "title": "Max concurrency",
-          "type": "integer",
-          "description": "Maximum number of pages that will be processed in parallel. This is usually limited by the memory assigned to the run.",
-          "minimum": 0,
-          "maximum": 1000,
-          "default": 100
-      },
-      "maxPageRetries": {
-          "title": "Max page retries",
-          "type": "integer",
-          "description": "Maximum number of retries when page scraping fails. Set to 0 if you are getting repeated errors where retrying does not help (and report to support@apify.com or create new issue)",
-          "minimum": 0,
-          "maximum": 1000,
-          "default": 6
-      },
-      "pageLoadTimeoutSec": {
-          "title": "Page load timeout seconds",
-          "type": "integer",
-          "description": "Maximum time in seconds to wait for the page to load.",
-          "minimum": 0,
-          "maximum": 1000,
-          "default": 60
-      },
-      "maxPagesPerBrowser": {
-          "title": "Max opened pages per browser",
-          "type": "integer",
-          "description": "How many pages can be opened at once for each browser. Having more pages in one browser is faster but can lead to increased blocking.",
-          "minimum": 0,
-          "maximum": 100,
-          "default": 1
-      },
       "allPlacesNoSearchAction": {
         "title": "Scrape all places (no search term)",
         "description": "Will scrape all places seen on the map. This depends on a lot of the zoom so for more places, increase the zoom. Doesn't work together with URLs",
