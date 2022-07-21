@@ -250,8 +250,8 @@ You can use any combination of the geolocation parameters:  `country`,  `state`,
 The scraper automatically zooms the map to ensure maximum results are extracted. Higher  `zoom`  ensures more (less known) places are scraped but takes longer to traverse by the scraper. Logically, the smaller the area is, the higher zoom should be used. Currently, the default  `zoom`  values are:
 - no geo or  `country`  or  `state`  -> 12 
  - `county`  -> 14  
- - `city`  -> 17  
--  `postalCode`  -> 18
+ - `city`  -> 15  
+-  `postalCode`  -> 16
 
 If you need even more results or faster run, you can override these values with the  `zoom`  input parameter.  `zoom`  can be any number between 1 (whole globe) and 21 (few houses).
 
