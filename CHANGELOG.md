@@ -1,4 +1,8 @@
-# 2022-07-22
+# 2022-07-21
+*Fixes*
+- Finish fast when less than 120 places are found on a page. Previous implementation waited several seconds extra.
+
+# 2022-07-20
 *Fixes*
 - Search pages now use scrolling instead of pagination. This makes the crawling a little slower and reduces the maximum number of places per page from 400 to 120. Use geolocation with zoom to work around this reduction. We might increase the default zoom by 1. in the near future.
 

@@ -337,6 +337,14 @@ module.exports.enqueueAllPlaceDetails = async ({
     // Main scrolling/enqueueing loop starts
     for (;;) {
         const logBaseScroll = `${logBase}[SCROLL: ${pageStats.pageNum}]:`
+        // Check if we grabbed all results for this search
+        const noMoreResults = await page.$('.HlvSq');
+        if (noMoreResults) {
+            log.info(`${logBase} Finishing search because we reached all ${pageStats.totalFound} results - ${request.url}`);
+            return;
+        }
+
+        // We also check for number of scrolls that do not trigger more places to have a hard stop
         if (lastNumberOfResultsLoadedTotally === pageStats.totalFound) {
             numberOfEmptyScrolls++;
         } else {
