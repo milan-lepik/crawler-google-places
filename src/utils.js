@@ -1,7 +1,8 @@
 const Apify = require('apify');
 const Puppeteer = require('puppeteer');
 
-const { DEFAULT_TIMEOUT, PLACE_TITLE_SEL, BACK_BUTTON_SEL } = require('./consts');
+const { DEFAULT_TIMEOUT, PLACE_TITLE_SEL, BACK_BUTTON_SEL, MAX_START_REQUESTS_SYNC, ASYNC_START_REQUESTS_INTERVAL } = require('./consts');
+const MaxCrawledPlacesTracker = require('./max-crawled-places');
 
 const { utils } = Apify;
 const { log } = utils;
@@ -424,3 +425,53 @@ module.exports.normalizePlaceUrl = (url) => {
 module.exports.stringifyGoogleXrhResponse = (googleResponseString) => {
     return JSON.parse(googleResponseString.replace(')]}\'', ''));
 };
+
+/**
+ *
+ * @param {MaxCrawledPlacesTracker} maxCrawledPlacesTracker
+ * @param {number} maxCrawledPlaces
+ * @param {Apify.RequestQueue} requestQueue
+ * @returns
+ */
+module.exports.enqueueStartRequests = (maxCrawledPlacesTracker, maxCrawledPlaces, requestQueue) => {
+    return async (/** @type {Apify.RequestOptions[]} */ requests) => {
+        log.info(`[SEARCH]: Enqueuing ${requests.length} Start Requests`)
+        for (const request of requests) {
+            if (request.userData?.label === 'detail') {
+                // TODO: Here we enqueue place details so we need to check for maxCrawledPlaces
+                if (!maxCrawledPlacesTracker.setEnqueued()) {
+                    log.warning(`Reached maxCrawledPlaces ${maxCrawledPlaces}, not enqueueing any more`);
+                    break;
+                }
+            }
+            await requestQueue.addRequest(request);
+        }
+    }
+}
+
+/**
+ *
+ * @param {Apify.RequestOptions[]} requestsToEnqueue
+ * @param {(requests: Apify.RequestOptions[]) => Promise<void>} enqueueRequests
+ */
+module.exports.enqueueStartRequestsAsync = (requestsToEnqueue, enqueueRequests) => {
+    /** @type {Apify.RequestOptions[][]} */
+    const asyncRequestGroups = [];
+
+    for (let i = 0; i < requestsToEnqueue.length + MAX_START_REQUESTS_SYNC; i += MAX_START_REQUESTS_SYNC) {
+        const nextRequestGroup = requestsToEnqueue.slice(i, i + MAX_START_REQUESTS_SYNC);
+        if (nextRequestGroup.length > 0) {
+            asyncRequestGroups.push(nextRequestGroup);
+        }
+    }
+
+    const intervalId = setInterval(async () => {
+        const nextGroup = asyncRequestGroups.shift();
+        if (nextGroup) {
+            await enqueueRequests(nextGroup);
+        } else {
+            clearInterval(intervalId);
+            log.info(`[SEARCH]: Cleared start requests enqueuing interval`);
+        }
+    }, ASYNC_START_REQUESTS_INTERVAL);
+}
