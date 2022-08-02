@@ -428,38 +428,41 @@ module.exports.stringifyGoogleXrhResponse = (googleResponseString) => {
 
 /**
  *
+ * @param {Apify.RequestOptions[]} requests
+ * @param {Apify.RequestQueue} requestQueue
  * @param {MaxCrawledPlacesTracker} maxCrawledPlacesTracker
  * @param {number} maxCrawledPlaces
- * @param {Apify.RequestQueue} requestQueue
  * @returns
  */
-module.exports.enqueueStartRequests = (maxCrawledPlacesTracker, maxCrawledPlaces, requestQueue) => {
-    return async (/** @type {Apify.RequestOptions[]} */ requests) => {
-        log.info(`[SEARCH]: Enqueuing ${requests.length} Start Requests`)
-        for (const request of requests) {
-            if (request.userData?.label === 'detail') {
-                // TODO: Here we enqueue place details so we need to check for maxCrawledPlaces
-                if (!maxCrawledPlacesTracker.setEnqueued()) {
-                    log.warning(`Reached maxCrawledPlaces ${maxCrawledPlaces}, not enqueueing any more`);
-                    break;
-                }
+const enqueueStartRequests = async (requests, requestQueue, maxCrawledPlacesTracker, maxCrawledPlaces) => {
+    log.info(`[SEARCH]: Enqueuing ${requests.length} Start Requests`)
+    for (const request of requests) {
+        if (request.userData?.label === 'detail') {
+            // TODO: Here we enqueue place details so we need to check for maxCrawledPlaces
+            if (!maxCrawledPlacesTracker.setEnqueued()) {
+                log.warning(`Reached maxCrawledPlaces ${maxCrawledPlaces}, not enqueueing any more`);
+                break;
             }
-            await requestQueue.addRequest(request);
         }
+        await requestQueue.addRequest(request);
     }
-}
+};
+
+module.exports.enqueueStartRequests = enqueueStartRequests;
 
 /**
  *
- * @param {Apify.RequestOptions[]} requestsToEnqueue
- * @param {(requests: Apify.RequestOptions[]) => Promise<void>} enqueueRequests
+ * @param {Apify.RequestOptions[]} requests
+ * @param {Apify.RequestQueue} requestQueue
+ * @param {MaxCrawledPlacesTracker} maxCrawledPlacesTracker
+ * @param {number} maxCrawledPlaces
  */
-module.exports.enqueueStartRequestsAsync = (requestsToEnqueue, enqueueRequests) => {
+module.exports.enqueueStartRequestsAsync = (requests, requestQueue, maxCrawledPlacesTracker, maxCrawledPlaces) => {
     /** @type {Apify.RequestOptions[][]} */
     const asyncRequestGroups = [];
 
-    for (let i = 0; i < requestsToEnqueue.length + MAX_START_REQUESTS_SYNC; i += MAX_START_REQUESTS_SYNC) {
-        const nextRequestGroup = requestsToEnqueue.slice(i, i + MAX_START_REQUESTS_SYNC);
+    for (let i = 0; i < requests.length + MAX_START_REQUESTS_SYNC; i += MAX_START_REQUESTS_SYNC) {
+        const nextRequestGroup = requests.slice(i, i + MAX_START_REQUESTS_SYNC);
         if (nextRequestGroup.length > 0) {
             asyncRequestGroups.push(nextRequestGroup);
         }
@@ -468,10 +471,10 @@ module.exports.enqueueStartRequestsAsync = (requestsToEnqueue, enqueueRequests) 
     const intervalId = setInterval(async () => {
         const nextGroup = asyncRequestGroups.shift();
         if (nextGroup) {
-            await enqueueRequests(nextGroup);
+            await enqueueStartRequests(nextGroup, requestQueue, maxCrawledPlacesTracker, maxCrawledPlaces);
         } else {
             clearInterval(intervalId);
             log.info(`[SEARCH]: Cleared start requests enqueuing interval`);
         }
     }, ASYNC_START_REQUESTS_INTERVAL);
-}
+};

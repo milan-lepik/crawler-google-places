@@ -186,10 +186,10 @@ Apify.main(async () => {
          */
         const requestsToEnqueue = [...startRequests];
 
-        const enqueueRequests = enqueueStartRequests(maxCrawledPlacesTracker, maxCrawledPlaces, requestQueue);
+        const syncStartRequests = requestsToEnqueue.splice(0, MAX_START_REQUESTS_SYNC);
+        await enqueueStartRequests(syncStartRequests, requestQueue, maxCrawledPlacesTracker, maxCrawledPlaces);
 
-        await enqueueRequests(requestsToEnqueue.splice(0, MAX_START_REQUESTS_SYNC));
-        enqueueStartRequestsAsync(requestsToEnqueue, enqueueRequests);
+        enqueueStartRequestsAsync(requestsToEnqueue, requestQueue, maxCrawledPlacesTracker, maxCrawledPlaces);
 
         await Apify.setValue('START-REQUESTS', startRequests);
         const apifyPlatformKVLink = 'link: https://api.apify.com/v2/key-value-stores/'
