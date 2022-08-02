@@ -468,6 +468,12 @@ module.exports.enqueueStartRequestsAsync = (requests, requestQueue, maxCrawledPl
         }
     }
 
+    /**
+     * We're using `setInterval` instead of `setTimeout` since `setTimeout` freezes
+     * the run in local development as all the remaining requests are enqueued at once.
+     * It is most likely caused by the implementation of `RequestQueue` which responds
+     * immediately in a local run.
+     */
     const intervalId = setInterval(async () => {
         const nextGroup = asyncRequestGroups.shift();
         if (nextGroup) {
