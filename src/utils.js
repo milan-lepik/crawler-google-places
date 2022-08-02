@@ -1,7 +1,8 @@
 const Apify = require('apify');
 const Puppeteer = require('puppeteer');
 
-const { DEFAULT_TIMEOUT, PLACE_TITLE_SEL, BACK_BUTTON_SEL } = require('./consts');
+const { DEFAULT_TIMEOUT, PLACE_TITLE_SEL, BACK_BUTTON_SEL, MAX_START_REQUESTS_SYNC, ASYNC_START_REQUESTS_INTERVAL } = require('./consts');
+const MaxCrawledPlacesTracker = require('./max-crawled-places');
 
 const { utils } = Apify;
 const { log } = utils;
@@ -423,4 +424,63 @@ module.exports.normalizePlaceUrl = (url) => {
 /** @param {string} googleResponseString */
 module.exports.stringifyGoogleXrhResponse = (googleResponseString) => {
     return JSON.parse(googleResponseString.replace(')]}\'', ''));
+};
+
+/**
+ *
+ * @param {Apify.RequestOptions[]} requests
+ * @param {Apify.RequestQueue} requestQueue
+ * @param {MaxCrawledPlacesTracker} maxCrawledPlacesTracker
+ * @param {number} maxCrawledPlaces
+ * @returns
+ */
+const enqueueStartRequests = async (requests, requestQueue, maxCrawledPlacesTracker, maxCrawledPlaces) => {
+    log.info(`[SEARCH]: Enqueuing ${requests.length} Start Requests`)
+    for (const request of requests) {
+        if (request.userData?.label === 'detail') {
+            // TODO: Here we enqueue place details so we need to check for maxCrawledPlaces
+            if (!maxCrawledPlacesTracker.setEnqueued()) {
+                log.warning(`Reached maxCrawledPlaces ${maxCrawledPlaces}, not enqueueing any more`);
+                break;
+            }
+        }
+        await requestQueue.addRequest(request);
+    }
+};
+
+module.exports.enqueueStartRequests = enqueueStartRequests;
+
+/**
+ *
+ * @param {Apify.RequestOptions[]} requests
+ * @param {Apify.RequestQueue} requestQueue
+ * @param {MaxCrawledPlacesTracker} maxCrawledPlacesTracker
+ * @param {number} maxCrawledPlaces
+ */
+module.exports.enqueueStartRequestsAsync = (requests, requestQueue, maxCrawledPlacesTracker, maxCrawledPlaces) => {
+    /** @type {Apify.RequestOptions[][]} */
+    const asyncRequestGroups = [];
+
+    for (let i = 0; i < requests.length + MAX_START_REQUESTS_SYNC; i += MAX_START_REQUESTS_SYNC) {
+        const nextRequestGroup = requests.slice(i, i + MAX_START_REQUESTS_SYNC);
+        if (nextRequestGroup.length > 0) {
+            asyncRequestGroups.push(nextRequestGroup);
+        }
+    }
+
+    /**
+     * We're using `setInterval` instead of `setTimeout` since `setTimeout` freezes
+     * the run in local development as all the remaining requests are enqueued at once.
+     * It is most likely caused by the implementation of `RequestQueue` which responds
+     * immediately in a local run.
+     */
+    const intervalId = setInterval(async () => {
+        const nextGroup = asyncRequestGroups.shift();
+        if (nextGroup) {
+            await enqueueStartRequests(nextGroup, requestQueue, maxCrawledPlacesTracker, maxCrawledPlaces);
+        } else {
+            clearInterval(intervalId);
+            log.info(`[SEARCH]: Cleared start requests enqueuing interval`);
+        }
+    }, ASYNC_START_REQUESTS_INTERVAL);
 };
