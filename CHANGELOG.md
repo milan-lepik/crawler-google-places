@@ -1,3 +1,7 @@
+# 2022-08-03
+*Fixes*
+- Fixed reviews extraction. After Google's change, the scraper was giving only up to 10 reviews. Now it works fully again. `newest` doesn't sort properly though yet.
+
 # 2022-07-21
 *Fixes*
 - Finish fast when less than 120 places are found on a page. Previous implementation waited several seconds extra.
