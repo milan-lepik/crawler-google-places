@@ -264,11 +264,7 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
             if (currentReviews.length === 0) {
                 break;
             }
-            if (!nextBatchUrlHash) {
-                log.warning(`Could not find parameter to get to a next page of reviews, stopping now --- ${page.url()}`);
-                break;
-            }
-            lastBatchUrlHash = nextBatchUrlHash;
+
             reviews.push(...currentReviews);
             let stopDateReached = false;
             for (const review of currentReviews) {
@@ -282,6 +278,12 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
                 break;
             }
             log.info(`[PLACE]: Extracting reviews: ${reviews.length}/${reviewsCount} --- ${page.url()}`);
+            lastBatchUrlHash = nextBatchUrlHash;
+             // Either we are on the last page or something broke
+             if (!nextBatchUrlHash && reviews.length < targetReviewsCount) {
+                log.warning(`Could not find parameter to get to a next page of reviews, stopping now --- ${page.url()}`);
+                break;
+            }
         }
         // NOTE: Sometimes for unknown reason, Google gives less reviews and in different order
         // TODO: Find a cause!!! All requests URLs look the same otherwise
