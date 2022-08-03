@@ -1,0 +1,9 @@
+correct
+https://www.google.com/maps/preview/review/listentitiesreviews?authuser=0&hl=en&gl=cz&pb=!1m2!1y5221366055905841625!2y13226830714359798441!2m2!2i10!3sCAESBkVnSUlDZw%3D%3D!3e1!4m5!3b1!4b1!5b1!6b1!7b1!5m2!1sljvqYqyMD4yysAfc8JmwBw!7e81
+
+incorrect
+https://www.google.com/maps/preview/review/listentitiesreviews?authuser=0&hl=en&gl=us&pb=!1m2!1y5221366055905841625!2y13226830714359798441!2m2!2i10!3e2!4m5!3b1!4b1!5b1!6b1!7b1!5m2!1sDm7qYvzaOPyfptQPhpGTmAo!7e81!3sCAESBkVnSUlDZw==!
+
+correct
+https://www.google.com/maps/preview/review/listentitiesreviews?authuser=0&hl=en&gl=us&pb=!1m2!1y5221366055905841625!2y13226830714359798441!2m2!2i10!3sCAESBkVnSUlDZw==!3e2!4m5!3b1!4b1!5b1!6b1!7b1!5m2!1sDm7qYvzaOPyfptQPhpGTmAo!7e81!
+
