@@ -435,7 +435,6 @@ module.exports.unstringifyGoogleXrhResponse = (googleResponseString) => {
  * @returns
  */
 const enqueueStartRequests = async (requests, requestQueue, maxCrawledPlacesTracker, maxCrawledPlaces) => {
-    log.info(`[SEARCH]: Enqueuing ${requests.length} Start Requests`)
     for (const request of requests) {
         if (request.userData?.label === 'detail') {
             // TODO: Here we enqueue place details so we need to check for maxCrawledPlaces
@@ -480,7 +479,6 @@ module.exports.enqueueStartRequestsAsync = (requests, requestQueue, maxCrawledPl
             await enqueueStartRequests(nextGroup, requestQueue, maxCrawledPlacesTracker, maxCrawledPlaces);
         } else {
             clearInterval(intervalId);
-            log.info(`[SEARCH]: Cleared start requests enqueuing interval`);
         }
     }, ASYNC_START_REQUESTS_INTERVAL);
 };
