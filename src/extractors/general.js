@@ -5,7 +5,7 @@ const Puppeteer = require('puppeteer'); // eslint-disable-line
 const { PlacePaginationData, PopularTimesOutput } = require('../typedefs');
 
 const { PLACE_TITLE_SEL } = require('../consts');
-const { waitForGoogleMapLoader, fixFloatNumber, navigateBack, stringifyGoogleXrhResponse } = require('../utils');
+const { waitForGoogleMapLoader, fixFloatNumber, navigateBack, unstringifyGoogleXrhResponse } = require('../utils');
 
 const { log } = Apify.utils;
 
@@ -84,7 +84,7 @@ const parseJsonResult = (placeData, isAdvertisement) => {
             }
             return { placesPaginationData, error: null };
         }
-        const data = stringifyGoogleXrhResponse(jsonObject.d);
+        const data = unstringifyGoogleXrhResponse(jsonObject.d);
 
         // We are paring ads but seems Google is not showing them to the scraper right now
         const ads = (data[2] && data[2][1] && data[2][1][0]) || [];

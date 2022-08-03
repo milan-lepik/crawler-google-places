@@ -422,7 +422,7 @@ module.exports.normalizePlaceUrl = (url) => {
 }
 
 /** @param {string} googleResponseString */
-module.exports.stringifyGoogleXrhResponse = (googleResponseString) => {
+module.exports.unstringifyGoogleXrhResponse = (googleResponseString) => {
     return JSON.parse(googleResponseString.replace(')]}\'', ''));
 };
 

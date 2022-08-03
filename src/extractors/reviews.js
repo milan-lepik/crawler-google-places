@@ -1,7 +1,7 @@
 const Apify = require('apify');
 const Puppeteer = require('puppeteer'); /// eslint-disable-line no-unused-vars
 
-const { stringifyGoogleXrhResponse } = require('../utils');
+const { unstringifyGoogleXrhResponse } = require('../utils');
 
 const { Review, PersonalDataOptions } = require('../typedefs');
 
@@ -101,7 +101,7 @@ const { log, sleep } = Apify.utils;
         : responseBody.toString('utf-8');
     let results;
     try {
-        results = stringifyGoogleXrhResponse(stringBody);
+        results = unstringifyGoogleXrhResponse(stringBody);
     } catch (e) {
         const error = /** @type {Error | string} */ (e);
         return { error };
@@ -113,7 +113,8 @@ const { log, sleep } = Apify.utils;
         const review = parseReviewFromJson(jsonArray, reviewsTranslation);
         currentReviews.push(review);
     });
-    return { currentReviews };
+    const nextBatchUrlHash = results?.[2]?.[9]?.[61];
+    return { currentReviews, nextBatchUrlHash };
 };
 
 /**
@@ -218,28 +219,40 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
         log.info(`[PLACE]: Extracting reviews: ${reviews.length}/${reviewsCount} --- ${page.url()}`);
         let reviewUrl = reviewsResponse.url();
 
+        // TODO: For all these URL pseudo parameters joined with !, we should create a parser to convert them to object
+        // These params seem to need to be in the exact order (unline regular query params)
+
         // We start "manual scrolling requests" from scratch because of sorting
         reviewUrl = reviewUrl.replace(/!3e\d/, `!3e${reviewSortOptions[reviewsSort] + 1}`);
 
-        // TODO: We capture the first batch, this should not start from 0 I think
-        // Make sure that we star review from 0, setting !1i0
-        reviewUrl = reviewUrl.replace(/!1i\d+/, '!1i0');
+        // !2m1 seems to be for the first batch and !2m2 for subsequent batches
+        reviewUrl = reviewUrl.replace(/!2m\d+/, '!2m2');
 
-        /** @param {string} url */
-        const increaseLimitInUrl = (url) => {
-            // @ts-ignore
-            const numberString = reviewUrl.match(/!1i(\d+)/)[1];
-            const number = parseInt(numberString, 10);
-            return url.replace(/!1i\d+/, `!1i${number + 10}`);
-        };
+        let lastBatchUrlHash = null;
 
         while (reviews.length < targetReviewsCount) {
+            if (lastBatchUrlHash) {
+                // TODO: This parsing is very clunky so should get more robust
+                // I need to insert this hash param to the exact place in the URL
+                const firstBatchUrlMatch = reviewUrl.match(/3s([^!]+)!/);
+                if (!firstBatchUrlMatch) {
+                    const baseUrlMatch = reviewUrl.match(/(!2i\d+!)(3e\d+!)/);
+                    if (baseUrlMatch) {
+                        reviewUrl = reviewUrl.replace(baseUrlMatch[1], `${baseUrlMatch[1]}3s${lastBatchUrlHash}!`);
+                    } else {
+                        log.warning(`Cannot construct proper URL for reviews, stopping now --- ${page.url()}`);
+                        break;
+                    }
+                } else {
+                    reviewUrl = reviewUrl.replace(firstBatchUrlMatch[1], lastBatchUrlHash);
+                }
+            }
             // Request in browser context to use proxy as in browser
             const responseBody = await page.evaluate(async (url) => {
                 const response = await fetch(url);
                 return response.text();
             }, reviewUrl);
-            const { currentReviews = [], error } = parseReviewFromResponseBody(responseBody, reviewsTranslation);
+            const { currentReviews = [], error, nextBatchUrlHash } = parseReviewFromResponseBody(responseBody, reviewsTranslation);
             if (error) {
                 // This means that invalid response were returned
                 // I think can happen if the review count changes
@@ -251,6 +264,11 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
             if (currentReviews.length === 0) {
                 break;
             }
+            if (!nextBatchUrlHash) {
+                log.warning(`Could not find parameter to get to a next page of reviews, stopping now --- ${page.url()}`);
+                break;
+            }
+            lastBatchUrlHash = nextBatchUrlHash;
             reviews.push(...currentReviews);
             let stopDateReached = false;
             for (const review of currentReviews) {
@@ -264,7 +282,6 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
                 break;
             }
             log.info(`[PLACE]: Extracting reviews: ${reviews.length}/${reviewsCount} --- ${page.url()}`);
-            reviewUrl = increaseLimitInUrl(reviewUrl);
         }
         // NOTE: Sometimes for unknown reason, Google gives less reviews and in different order
         // TODO: Find a cause!!! All requests URLs look the same otherwise
