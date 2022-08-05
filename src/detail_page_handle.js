@@ -181,7 +181,7 @@ module.exports.handlePlaceDetail = async (options) => {
     }
 
     if (!permanentlyClosed) {
-        permanentlyClosed = await page.evaluate(() => $('#pane').text().includes('Permanently closed'));
+        permanentlyClosed = await page.evaluate(() => $('#pane,.skqShb').text().includes('Permanently closed'));
     }
 
     // TODO: Add a backup and figure out why some direct start URLs don't load jsonData
