@@ -8,6 +8,54 @@ const { Review, PersonalDataOptions } = require('../typedefs');
 
 const { log, sleep } = Apify.utils;
 
+class ReviewUrlParams {
+
+    /**
+     * @param {string} reviewUrl
+     */
+    constructor(reviewUrl) {
+        this.reviewUrl = reviewUrl;
+        const pb = new URL(reviewUrl).searchParams.get('pb');
+
+        if (!pb) {
+            throw 'Could not find pb parameter in the review URL';
+        }
+
+        this.ast = GoogleMapsDataAST.parse(pb);
+
+    }
+
+    /**
+    * @param {number} sortType
+    */
+    setReviewSort(sortType) {
+        this.ast.enum[3].value = `${sortType + 1}`;
+    }
+
+    /**
+   * @param {string} cursor
+   */
+    setPaginationCursor(cursor) {
+        // Stating that the matrix has now 2 values
+        this.ast.matrix[2].value = '2';
+        // Adding the second value, which is the cursor of the last comment found
+        // @ts-ignore
+        this.ast.matrix[2].children.string = {
+            3: {
+                id: 3,
+                code: 's',
+                value: cursor,
+            }
+        }
+    }
+
+    getUrl() {
+        const reviewUrlInstance = new URL(this.reviewUrl);
+        reviewUrlInstance.searchParams.set('pb', GoogleMapsDataAST.stringify(this.ast));
+        return reviewUrlInstance.href;
+    }
+}
+
 /**
  *
  * @param {Review[]} reviews
@@ -114,8 +162,8 @@ const parseReviewFromResponseBody = (responseBody, reviewsTranslation) => {
         const review = parseReviewFromJson(jsonArray, reviewsTranslation);
         currentReviews.push(review);
     });
-    const nextBatchUrlHash = results?.[2]?.[9]?.[61];
-    return { currentReviews, nextBatchUrlHash };
+    const nextBatchCursor = results?.[2]?.[9]?.[61];
+    return { currentReviews, nextBatchCursor };
 };
 
 /**
@@ -220,42 +268,18 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
         log.info(`[PLACE]: Extracting reviews: ${reviews.length}/${reviewsCount} --- ${page.url()}`);
         let reviewUrl = reviewsResponse.url();
 
-        // TODO: For all these URL pseudo parameters joined with !, we should create a parser to convert them to object
-        // These params seem to need to be in the exact order (unline regular query params)
+        const nextReviewPbAST = new ReviewUrlParams(reviewUrl);
 
-        const pb = new URL(reviewUrl).searchParams.get('pb');
+        nextReviewPbAST.setReviewSort(reviewSortOptions[reviewsSort]);
 
-        if (!pb) {
-            throw 'Could not find pb parameter in reviews URL';
-        }
-
-        let nextReviewPbAST = GoogleMapsDataAST.parse(pb);
-
-        // We start "manual scrolling requests" from scratch because of sorting
-        nextReviewPbAST.enum[3].value = `${reviewSortOptions[reviewsSort] + 1}`;
-
-        let lastBatchUrlHash = null;
+        let lastBatchUrlCursor = null;
 
         while (reviews.length < targetReviewsCount) {
-            if (lastBatchUrlHash) {
-
-                // Stating that the matrix has now 2 values
-                nextReviewPbAST.matrix[2].value = '2';
-                // Adding the second value, which is the cursor of the last comment found
-                // @ts-ignore
-                nextReviewPbAST.matrix[2].children.string = {
-                    3: {
-                        id: 3,
-                        code: 's',
-                        value: lastBatchUrlHash,
-                    }
-                }
-
+            if (lastBatchUrlCursor) {
+                nextReviewPbAST.setPaginationCursor(lastBatchUrlCursor);
             }
 
-            const reviewUrlInstance = new URL(reviewUrl);
-            reviewUrlInstance.searchParams.set('pb', GoogleMapsDataAST.stringify(nextReviewPbAST));
-            reviewUrl = reviewUrlInstance.href;
+            reviewUrl = nextReviewPbAST.getUrl();
 
             // Request in browser context to use proxy as in browser
             const responseBody = await page.evaluate(async (url) => {
@@ -263,7 +287,7 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
                 return response.text();
             }, reviewUrl);
 
-            const { currentReviews = [], error, nextBatchUrlHash } = parseReviewFromResponseBody(responseBody, reviewsTranslation);
+            const { currentReviews = [], error, nextBatchCursor } = parseReviewFromResponseBody(responseBody, reviewsTranslation);
             if (error) {
                 // This means that invalid response were returned
                 // I think can happen if the review count changes
@@ -289,9 +313,9 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
                 break;
             }
             log.info(`[PLACE]: Extracting reviews: ${reviews.length}/${reviewsCount} --- ${page.url()}`);
-            lastBatchUrlHash = nextBatchUrlHash;
+            lastBatchUrlCursor = nextBatchCursor;
             // Either we are on the last page or something broke
-            if (!nextBatchUrlHash && reviews.length < targetReviewsCount) {
+            if (!nextBatchCursor && reviews.length < targetReviewsCount) {
                 log.warning(`Could not find parameter to get to a next page of reviews, stopping now --- ${page.url()}`);
                 break;
             }
