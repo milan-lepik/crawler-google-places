@@ -1,3 +1,7 @@
+# 2022-08-05
+*Fixes*
+- Fixed reviews duplications that sometimes happened.
+
 # 2022-08-03
 *Fixes*
 - Fixed reviews extraction. After Google's change, the scraper was giving only up to 10 reviews. Now it works fully again. `newest` doesn't sort properly though yet.
