@@ -26,6 +26,7 @@
     "dependencies": {
         "@turf/turf": "^5.1.6",
         "apify": "^2.3.2",
+        "google-maps-data-ast": "^0.0.1",
         "puppeteer": "*"
     },
     "devDependencies": {

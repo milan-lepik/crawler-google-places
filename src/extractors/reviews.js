@@ -1,5 +1,6 @@
 const Apify = require('apify');
 const Puppeteer = require('puppeteer'); /// eslint-disable-line no-unused-vars
+const GoogleMapsDataAST = require('google-maps-data-ast');
 
 const { unstringifyGoogleXrhResponse } = require('../utils');
 
@@ -13,7 +14,7 @@ const { log, sleep } = Apify.utils;
  * @param {PersonalDataOptions} personalDataOptions
  * @returns {Review[]}
  */
- const removePersonalDataFromReviews = (reviews, personalDataOptions) => {
+const removePersonalDataFromReviews = (reviews, personalDataOptions) => {
     for (const review of reviews) {
         if (!personalDataOptions.scrapeReviewerName) {
             review.name = null;
@@ -43,7 +44,7 @@ const { log, sleep } = Apify.utils;
  * @param {string} reviewsTranslation
  * @return {Review}
  */
- const parseReviewFromJson = (jsonArray, reviewsTranslation) => {
+const parseReviewFromJson = (jsonArray, reviewsTranslation) => {
     let text = jsonArray[3];
 
     // Optionally remove translation
@@ -93,7 +94,7 @@ const { log, sleep } = Apify.utils;
  * @param {string} reviewsTranslation
  * @return [place]
  */
- const parseReviewFromResponseBody = (responseBody, reviewsTranslation) => {
+const parseReviewFromResponseBody = (responseBody, reviewsTranslation) => {
     /** @type {Review[]} */
     const currentReviews = [];
     const stringBody = typeof responseBody === 'string'
@@ -222,42 +223,52 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
         // TODO: For all these URL pseudo parameters joined with !, we should create a parser to convert them to object
         // These params seem to need to be in the exact order (unline regular query params)
 
-        // We start "manual scrolling requests" from scratch because of sorting
-        reviewUrl = reviewUrl.replace(/!3e\d/, `!3e${reviewSortOptions[reviewsSort] + 1}`);
+        const pb = new URL(reviewUrl).searchParams.get('pb');
 
-        // !2m1 seems to be for the first batch and !2m2 for subsequent batches
-        reviewUrl = reviewUrl.replace(/!2m\d+/, '!2m2');
+        if (!pb) {
+            throw 'Could not find pb parameter in reviews URL';
+        }
+
+        let nextReviewPbAST = GoogleMapsDataAST.parse(pb);
+
+        // We start "manual scrolling requests" from scratch because of sorting
+        nextReviewPbAST.enum[3].value = `${reviewSortOptions[reviewsSort] + 1}`;
 
         let lastBatchUrlHash = null;
 
         while (reviews.length < targetReviewsCount) {
             if (lastBatchUrlHash) {
-                // TODO: This parsing is very clunky so should get more robust
-                // I need to insert this hash param to the exact place in the URL
-                const firstBatchUrlMatch = reviewUrl.match(/3s([^!]+)!/);
-                if (!firstBatchUrlMatch) {
-                    const baseUrlMatch = reviewUrl.match(/(!2i\d+!)(3e\d+!)/);
-                    if (baseUrlMatch) {
-                        reviewUrl = reviewUrl.replace(baseUrlMatch[1], `${baseUrlMatch[1]}3s${lastBatchUrlHash}!`);
-                    } else {
-                        log.warning(`Cannot construct proper URL for reviews, stopping now --- ${page.url()}`);
-                        break;
+
+                // Stating that the matrix has now 2 values
+                nextReviewPbAST.matrix[2].value = '2';
+                // Adding the second value, which is the cursor of the last comment found
+                // @ts-ignore
+                nextReviewPbAST.matrix[2].children.string = {
+                    3: {
+                        id: 3,
+                        code: 's',
+                        value: lastBatchUrlHash,
                     }
-                } else {
-                    reviewUrl = reviewUrl.replace(firstBatchUrlMatch[1], lastBatchUrlHash);
                 }
+
             }
+
+            const reviewUrlInstance = new URL(reviewUrl);
+            reviewUrlInstance.searchParams.set('pb', GoogleMapsDataAST.stringify(nextReviewPbAST));
+            reviewUrl = reviewUrlInstance.href;
+
             // Request in browser context to use proxy as in browser
             const responseBody = await page.evaluate(async (url) => {
                 const response = await fetch(url);
                 return response.text();
             }, reviewUrl);
+
             const { currentReviews = [], error, nextBatchUrlHash } = parseReviewFromResponseBody(responseBody, reviewsTranslation);
             if (error) {
                 // This means that invalid response were returned
                 // I think can happen if the review count changes
                 log.warning(`Invalid response returned for reviews. `
-                + `This might be caused by updated review count. The reviews should be scraped correctly. ${page.url()}`);
+                    + `This might be caused by updated review count. The reviews should be scraped correctly. ${page.url()}`);
                 log.warning(typeof error === 'string' ? error : error.message);
                 break;
             }
@@ -279,8 +290,8 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
             }
             log.info(`[PLACE]: Extracting reviews: ${reviews.length}/${reviewsCount} --- ${page.url()}`);
             lastBatchUrlHash = nextBatchUrlHash;
-             // Either we are on the last page or something broke
-             if (!nextBatchUrlHash && reviews.length < targetReviewsCount) {
+            // Either we are on the last page or something broke
+            if (!nextBatchUrlHash && reviews.length < targetReviewsCount) {
                 log.warning(`Could not find parameter to get to a next page of reviews, stopping now --- ${page.url()}`);
                 break;
             }
