@@ -262,6 +262,7 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
             ]);
             reviewsResponse = responses[0];
         } catch (e) {
+            log.error(e.message);
             throw 'Didn\'t receive response in time after clicking on reviews button';
         }
 
