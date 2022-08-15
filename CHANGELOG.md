@@ -1,3 +1,7 @@
+# 2022-08-15
+*Fixes*
+- Fixed actor sometimes finishing prematurely when there were still requests in the queue (caused by the new background enqueueing system)
+
 # 2022-08-05
 *Fixes*
 - Fixed reviews duplications that sometimes happened.
