@@ -142,9 +142,7 @@ Apify.main(async () => {
                 } else if (searchString.includes('place_id:')) {
                     /**
                      * User can use place_id:<Google place ID> as search query
-                     * TODO: Move place id to separate fields, once we have dependent fields. Than user can fill placeId or search query.
                      */
-                    log.info(`Place ID found in search query. We will extract data from ${searchString}.`);
                     const cleanSearch = searchString.replace(/\s+/g, '');
                     // @ts-ignore We know this is correct
                     const placeId = cleanSearch.match(/place_id:(.*)/)[1];
