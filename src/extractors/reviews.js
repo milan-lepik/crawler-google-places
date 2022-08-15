@@ -257,12 +257,13 @@ module.exports.extractReviews = async ({ page, reviewsCount, request, reviewsSta
         let reviewsResponse;
         try {
             const responses = await Promise.all([
-                page.waitForResponse((response) => response.url().includes('preview/review/listentitiesreviews')),
+                page.waitForResponse((response) => response.url().includes('preview/review/listentitiesreviews'),
+                    { timeout: 60000 }),
                 page.click(reviewsButtonSel),
             ]);
             reviewsResponse = responses[0];
         } catch (e) {
-            throw 'Didn\'t receive response in time after clicking on reviews button';
+            throw `Didn\'t receive response in time after clicking on reviews button - ${e.message}`;
         }
 
         log.info(`[PLACE]: Extracting reviews: ${reviews.length}/${reviewsCount} --- ${page.url()}`);
