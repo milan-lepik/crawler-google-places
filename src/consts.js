@@ -5,8 +5,8 @@ exports.MAX_PLACES_PER_PAGE = 120;
 
 // Max start requests that can be fed to the request queue synchronously.
 // This is intentionally low to prevent JS event loop from being too busy when enqueueing is going on in the background.
-exports.MAX_START_REQUESTS_SYNC = 100;
-exports.ASYNC_START_REQUESTS_INTERVAL = 40000;
+exports.MAX_START_REQUESTS_SYNC = 200;
+exports.ASYNC_START_REQUESTS_INTERVAL_MS = 20000;
 
 exports.LISTING_PAGINATION_KEY = 'lisState';
 exports.MAX_PAGE_RETRIES = 6;

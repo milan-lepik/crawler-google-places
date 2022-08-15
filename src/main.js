@@ -12,8 +12,8 @@ const ExportUrlsDeduper = require('./export-urls-deduper');
 const { prepareSearchUrlsAndGeo } = require('./search');
 const { createStartRequestsWithWalker } = require('./walker');
 const { makeInputBackwardsCompatible, validateInput, getValidStartRequests, adjustInput } = require('./input-validation');
-const { parseRequestsFromStartUrls, enqueueStartRequests, enqueueStartRequestsAsync } = require('./utils');
-const { MAX_START_REQUESTS_SYNC } = require('./consts');
+const { parseRequestsFromStartUrls } = require('./utils');
+const { setUpEnqueueingInBackground } = require('./background-enqueue');
 
 const { log } = Apify.utils;
 
@@ -179,18 +179,6 @@ Apify.main(async () => {
         log.info(`Prepared ${startRequests.length} Start URLs (showing max 10):`);
         console.dir(startRequests.map((r) => r.url).slice(0, 10));
 
-        /**
-         * Start requests will be shifted and enqueued from this array asynchronously.
-         * Actor's migration will be handled by default as `requestsToEnqueue`
-         * are built from `startRequests` and these are created from the input on each run.
-         */
-        const requestsToEnqueue = [...startRequests];
-
-        const syncStartRequests = requestsToEnqueue.splice(0, MAX_START_REQUESTS_SYNC);
-        await enqueueStartRequests(syncStartRequests, requestQueue, maxCrawledPlacesTracker, maxCrawledPlaces);
-
-        enqueueStartRequestsAsync(requestsToEnqueue, requestQueue, maxCrawledPlacesTracker, maxCrawledPlaces);
-
         await Apify.setValue('START-REQUESTS', startRequests);
         const apifyPlatformKVLink = 'link: https://api.apify.com/v2/key-value-stores/'
             + `${Apify.getEnv().defaultKeyValueStoreId}/records/START-REQUESTS?disableRedirect=true`;
@@ -201,6 +189,9 @@ Apify.main(async () => {
     } else {
         log.warning('Actor was restarted, skipping search step because it was already done...');
     }
+
+    // We enqueue small part of initial requests now and the rest in background
+    await setUpEnqueueingInBackground(startRequests, requestQueue, maxCrawledPlacesTracker);
 
     const proxyConfiguration = await Apify.createProxyConfiguration(proxyConfig);
 
