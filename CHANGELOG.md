@@ -1,3 +1,7 @@
+# 2022-08-16
+*Fixes*
+- Improve extraction of additional infos for hotels.
+
 # 2022-08-15
 *Fixes*
 - Fixed actor sometimes finishing prematurely when there were still requests in the queue (caused by the new background enqueueing system)
