@@ -1,7 +1,7 @@
 const Apify = require('apify');
 
-const MaxCrawledPlacesTracker = require('./max-crawled-places');
-const { MAX_START_REQUESTS_SYNC, ASYNC_START_REQUESTS_INTERVAL_MS } = require('./consts')
+const MaxCrawledPlacesTracker = require('../helper-classes/max-crawled-places');
+const { MAX_START_REQUESTS_SYNC, ASYNC_START_REQUESTS_INTERVAL_MS } = require('../consts')
 
 const { log } = Apify.utils;
 

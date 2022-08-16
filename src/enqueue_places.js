@@ -4,16 +4,16 @@ const querystring = require('querystring');
 
 const Puppeteer = require('puppeteer'); // eslint-disable-line
 const typedefs = require('./typedefs'); // eslint-disable-line no-unused-vars
-const Stats = require('./stats'); // eslint-disable-line no-unused-vars
-const PlacesCache = require('./places_cache'); // eslint-disable-line no-unused-vars
-const MaxCrawledPlacesTracker = require('./max-crawled-places'); // eslint-disable-line no-unused-vars
-const ExportUrlsDeduper = require('./export-urls-deduper'); // eslint-disable-line no-unused-vars
+const Stats = require('./helper-classes/stats'); // eslint-disable-line no-unused-vars
+const PlacesCache = require('./helper-classes/places_cache'); // eslint-disable-line no-unused-vars
+const MaxCrawledPlacesTracker = require('./helper-classes/max-crawled-places'); // eslint-disable-line no-unused-vars
+const ExportUrlsDeduper = require('./helper-classes/export-urls-deduper'); // eslint-disable-line no-unused-vars
 
 const { sleep, log } = Apify.utils;
 const { MAX_PLACES_PER_PAGE, PLACE_TITLE_SEL, NO_RESULT_XPATH } = require('./consts');
-const { waitForGoogleMapLoader, parseZoomFromUrl, moveMouseThroughPage, getScreenshotPinsFromExternalActor } = require('./utils');
-const { parseSearchPlacesResponseBody } = require('./extractors/general');
-const { checkInPolygon } = require('./polygon');
+const { waitForGoogleMapLoader, parseZoomFromUrl, moveMouseThroughPage, getScreenshotPinsFromExternalActor } = require('./utils/misc-utils');
+const { parseSearchPlacesResponseBody } = require('./place-extractors/general');
+const { checkInPolygon } = require('./utils/polygon');
 
 const SEARCH_WAIT_TIME_MS = 30000;
 const CHECK_LOAD_OUTCOMES_EVERY_MS = 500;

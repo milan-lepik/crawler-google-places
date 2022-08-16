@@ -1,17 +1,17 @@
 const Apify = require('apify'); // eslint-disable-line no-unused-vars
 const Puppeteer = require('puppeteer'); // eslint-disable-line no-unused-vars
-const MaxCrawledPlacesTracker = require('./max-crawled-places'); // eslint-disable-line no-unused-vars
+const MaxCrawledPlacesTracker = require('./helper-classes/max-crawled-places'); // eslint-disable-line no-unused-vars
 
 const { ScrapingOptions, PlaceUserData } = require('./typedefs'); // eslint-disable-line no-unused-vars
-const ErrorSnapshotter = require('./error-snapshotter'); // eslint-disable-line no-unused-vars
-const Stats = require('./stats'); // eslint-disable-line no-unused-vars
+const ErrorSnapshotter = require('./helper-classes/error-snapshotter'); // eslint-disable-line no-unused-vars
+const Stats = require('./helper-classes/stats'); // eslint-disable-line no-unused-vars
 
 const { extractPageData, extractPopularTimes, extractOpeningHours, extractPeopleAlsoSearch,
-    extractAdditionalInfo } = require('./extractors/general');
-const { extractImages } = require('./extractors/images');
-const { extractReviews } = require('./extractors/reviews');
+    extractAdditionalInfo } = require('./place-extractors/general');
+const { extractImages } = require('./place-extractors/images');
+const { extractReviews } = require('./place-extractors/reviews');
 const { DEFAULT_TIMEOUT, PLACE_TITLE_SEL } = require('./consts');
-const { waitForGoogleMapLoader } = require('./utils');
+const { waitForGoogleMapLoader } = require('./utils/misc-utils');
 
 const { log } = Apify.utils;
 

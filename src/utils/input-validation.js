@@ -1,8 +1,8 @@
 const Apify = require('apify');
-const { REGEXES } = require('./consts');
+const { REGEXES } = require('../consts');
 
-const typedefs = require('./typedefs'); // eslint-disable-line no-unused-vars
-const { normalizePlaceUrl } = require('./utils');
+const typedefs = require('../typedefs'); // eslint-disable-line no-unused-vars
+const { normalizePlaceUrl } = require('./misc-utils');
 
 const { log } = Apify.utils;
 

@@ -4,16 +4,16 @@ const typedefs = require('./typedefs'); // eslint-disable-line no-unused-vars
 const { PersonalDataOptions } = require('./typedefs');
 
 const placesCrawler = require('./places_crawler');
-const Stats = require('./stats');
-const ErrorSnapshotter = require('./error-snapshotter');
-const PlacesCache = require('./places_cache');
-const MaxCrawledPlacesTracker = require('./max-crawled-places');
-const ExportUrlsDeduper = require('./export-urls-deduper');
-const { prepareSearchUrlsAndGeo } = require('./search');
-const { createStartRequestsWithWalker } = require('./walker');
-const { makeInputBackwardsCompatible, validateInput, getValidStartRequests, adjustInput } = require('./input-validation');
-const { parseRequestsFromStartUrls } = require('./utils');
-const { setUpEnqueueingInBackground } = require('./background-enqueue');
+const Stats = require('./helper-classes/stats');
+const ErrorSnapshotter = require('./helper-classes/error-snapshotter');
+const PlacesCache = require('./helper-classes/places_cache');
+const MaxCrawledPlacesTracker = require('./helper-classes/max-crawled-places');
+const ExportUrlsDeduper = require('./helper-classes/export-urls-deduper');
+const { prepareSearchUrlsAndGeo } = require('./utils/search');
+const { createStartRequestsWithWalker } = require('./utils/walker');
+const { makeInputBackwardsCompatible, validateInput, getValidStartRequests, adjustInput } = require('./utils/input-validation');
+const { parseRequestsFromStartUrls } = require('./utils/misc-utils');
+const { setUpEnqueueingInBackground } = require('./utils/background-enqueue');
 
 const { log } = Apify.utils;
 

@@ -18,5 +18,5 @@
     },
     "include": [
         "./src/*.js"
-    ]
+, "src/utils/search.js", "src/utils/walker.js", "src/utils/input-validation.js", "src/utils/misc-utils.js", "src/utils/background-enqueue.js", "src/helper-classes/places_cache.js", "src/helper-classes/max-crawled-places.js", "src/helper-classes/stats.js", "src/helper-classes/export-urls-deduper.js", "src/helper-classes/error-snapshotter.js", "src/utils/polygon.js"    ]
 }

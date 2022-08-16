@@ -1,7 +1,7 @@
 const Apify = require('apify');
 const turf = require('@turf/turf');
 
-const typedefs = require('./typedefs'); // eslint-disable-line
+const typedefs = require('../typedefs'); // eslint-disable-line
 
 const { log } = Apify.utils;
 const TURF_UNIT = 'kilometers';

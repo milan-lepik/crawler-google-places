@@ -1,7 +1,7 @@
 const Apify = require('apify');
 const Puppeteer = require('puppeteer');
 
-const { DEFAULT_TIMEOUT, PLACE_TITLE_SEL, BACK_BUTTON_SEL } = require('./consts');
+const { DEFAULT_TIMEOUT, PLACE_TITLE_SEL, BACK_BUTTON_SEL } = require('../consts');
 
 const { utils } = Apify;
 const { log } = utils;

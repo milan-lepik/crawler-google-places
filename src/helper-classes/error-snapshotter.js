@@ -1,6 +1,6 @@
 const Apify = require('apify');
 const Puppeteer = require('puppeteer'); // eslint-disable-line
-const typedefs = require('./typedefs'); // eslint-disable-line no-unused-vars
+const typedefs = require('../typedefs'); // eslint-disable-line no-unused-vars
 
 /**
  * Utility class that allows you to wrap your functions
