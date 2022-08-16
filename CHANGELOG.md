@@ -9,6 +9,7 @@
 # 2022-08-05
 *Fixes*
 - Fixed reviews duplications that sometimes happened.
+- Fixed extraction of the temporarilyClosed field.
 
 # 2022-08-03
 *Fixes*
