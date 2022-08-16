@@ -4,7 +4,7 @@ const Puppeteer = require('puppeteer'); // eslint-disable-line
 
 const { log, sleep } = Apify.utils;
 
-const { navigateBack, scrollTo } = require('../utils');
+const { navigateBack, scrollTo } = require('../utils/misc-utils');
 
 /** @param {string[]} imageUrls */
 const enlargeImageUrls = (imageUrls) => {

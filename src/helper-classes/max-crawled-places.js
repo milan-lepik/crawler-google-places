@@ -1,6 +1,6 @@
 const Apify = require('apify');
 
-const typedefs = require('./typedefs');
+const typedefs = require('../typedefs');
 
 const MAX_CRAWLED_PLACES_STATE_RECORD_NAME = 'MAX_CRAWLED_PLACES_STATE';
 

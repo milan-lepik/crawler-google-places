@@ -1,8 +1,8 @@
 const Apify = require('apify');
 
-const { GEO_TO_DEFAULT_ZOOM } = require('./consts');
+const { GEO_TO_DEFAULT_ZOOM } = require('../consts');
 const { getGeolocation, findPointsInPolygon, getGeoJson } = require('./polygon');
-const { Geolocation, GeolocationFull } = require('./typedefs');
+const { Geolocation, GeolocationFull } = require('../typedefs');
 
 const { log } = Apify.utils;
 

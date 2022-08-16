@@ -2,7 +2,7 @@ const Apify = require('apify');
 const Puppeteer = require('puppeteer'); /// eslint-disable-line no-unused-vars
 const GoogleMapsDataAST = require('google-maps-data-ast');
 
-const { unstringifyGoogleXrhResponse } = require('../utils');
+const { unstringifyGoogleXrhResponse } = require('../utils/misc-utils');
 
 const { Review, PersonalDataOptions } = require('../typedefs');
 

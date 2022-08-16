@@ -1,10 +1,10 @@
 const Apify = require('apify');
 
-const Stats = require('./stats');
-const ErrorSnapshotter = require('./error-snapshotter');
-const PlacesCache = require('./places_cache');
-const MaxCrawledPlacesTracker = require('./max-crawled-places');
-const ExportUrlsDeduper = require('./export-urls-deduper');
+const Stats = require('./helper-classes/stats');
+const ErrorSnapshotter = require('./helper-classes/error-snapshotter');
+const PlacesCache = require('./helper-classes/places_cache');
+const MaxCrawledPlacesTracker = require('./helper-classes/max-crawled-places');
+const ExportUrlsDeduper = require('./helper-classes/export-urls-deduper');
 
 /**
  * Options for the scraping process

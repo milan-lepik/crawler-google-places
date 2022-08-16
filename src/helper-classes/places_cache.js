@@ -1,8 +1,8 @@
 const Apify = require('apify');
 const { utils: { log } } = Apify;
-const { checkInPolygon } = require('./polygon');
+const { checkInPolygon } = require('../utils/polygon');
 const cachedPlacesName = 'Places-cached-locations';
-const typedefs = require('./typedefs');
+const typedefs = require('../typedefs');
 
 // Only used for Heyrick customer, enabled by input
 // TODO: Re-evaluate if we should not remove this

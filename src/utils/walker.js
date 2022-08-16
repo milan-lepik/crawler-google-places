@@ -1,6 +1,6 @@
 const Apify = require('apify');
 
-const typedefs = require('./typedefs'); // eslint-disable-line no-unused-vars
+const typedefs = require('../typedefs'); // eslint-disable-line no-unused-vars
 
 const { log } = Apify.utils;
 

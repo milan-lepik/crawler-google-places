@@ -7,7 +7,7 @@ const { enqueueAllPlaceDetails } = require('./enqueue_places');
 const { handlePlaceDetail } = require('./detail_page_handle');
 const {
     waitAndHandleConsentScreen, waiter,
-} = require('./utils');
+} = require('./utils/misc-utils');
 
 const { log } = Apify.utils;
 const { injectJQuery, blockRequests } = Apify.utils.puppeteer;
