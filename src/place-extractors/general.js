@@ -361,15 +361,15 @@ module.exports.extractAdditionalInfo = async ({ page, placeUrl, jsonData }) => {
             await navigateBack(page, 'additional info', placeUrl);
         }
     } else {
-        // DIV for "Hotel details" has the CSS class "fPmgbe-eTC1nf-vg2oCf-haAclf"
-        const hotel_avail_amenities = await page.$$eval('div[class="fPmgbe-eTC1nf-vg2oCf-haAclf"] div:not([aria-disabled=true]) > span',
+        // DIV for "Hotel details" has the CSS class "WKLD0c"
+        const hotel_avail_amenities = await page.$$eval('div[class="WKLD0c"] div:not([aria-disabled=true]) > span',
             (elements) => {
                 return elements.map((element) => {
                     return element.textContent ? element.textContent.trim() : ''
                 });
             }
         );
-        const hotel_disabled_amenities = await page.$$eval('div[class="fPmgbe-eTC1nf-vg2oCf-haAclf"] div[aria-disabled=true] > span',
+        const hotel_disabled_amenities = await page.$$eval('div[class="WKLD0c"] div[aria-disabled=true] > span',
             (elements) => {
                 return elements.map((element) => {
                     return element.textContent ? element.textContent.trim() : ''
