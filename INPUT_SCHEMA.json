@@ -1,13 +1,13 @@
 {
     "title": "Google Maps Scraper",
-    "description": "Provide either a keyword(s), a list of search keywords or a Google Maps URL(s) (in the \"Define the search area by other parameters\" section bellow). <br>Keep in mind they are mutually exclusive. <br> We recommend using Search term, Country and City fields as your starting point.",
+    "description": "Provide either a keyword(s), a list of search keywords or a Google Maps URL(s) (in the \"Define the search area by other parameters\" section bellow). <br>Keep in mind they are mutually exclusive. <br> We recommend using Search term, Country and City fields as your starting point. Using Country, City or other geolocation parameters increases the maximum results over Google's limit of 120 places per search term.",
     "type": "object",
     "schemaVersion": 1,
     "properties": {
         "searchStringsArray": {
             "title": "Search term(s)",
             "type": "array",
-            "description": "Type what you want to search for as you would write it into the Google Maps search bar, e.g. 'restaurant' or 'pet shelter'. You can also add location here, e.g. `restaurant New York`, but then you will only get around 120 results per search.",
+            "description": "Type what you want to search for as you would write it into the Google Maps search bar, e.g. 'restaurant' or 'pet shelter'. You can also add location here, e.g. `restaurant New York`, but then you will only get around 120 results per search (Google's scrolling limit on a single search).",
             "editor": "stringList",
             "prefill": [
                 "restaurant"
@@ -22,10 +22,11 @@
         "countryCode": {
             "title": "Country",
             "type": "string",
-            "description": "Set the country where the search should be carried out, e.g., 'United States'.",
-            "prefill": "us",
+            "description": "Set the country where the search should be carried out, e.g., 'United States'. Currently, the scraper doesn't work well for full-country searching of sparsely populated countries like USA or Russia. For these, prefer searching city by city or focus on populated states.",
+            "prefill": "",
             "editor": "select",
             "enum": [
+                "",
                 "us",
                 "af",
                 "al",
@@ -267,6 +268,7 @@
                 "zw"
             ],
             "enumTitles": [
+                "",
                 "United States",
                 "Afghanistan",
                 "Albania",
