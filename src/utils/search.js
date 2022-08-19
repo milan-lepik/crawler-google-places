@@ -53,7 +53,9 @@ exports.prepareSearchUrlsAndGeo = async ({ lat, lng, userOverridingZoom, country
     const startUrlSearches = [];
 
     const zoom = userOverridingZoom || getMatchingDefaultZoom({ country, state, county, city, postalCode });
-    log.info(`Using zoom ${zoom} to define the search`);
+    log.info(`Using zoom ${zoom} to define the search. `
+        + `Higher zoom takes exponentially more time to run but is able to extract more (usually less known) places`
+        + `You can override the default zoom in input`);
 
     /** @type {Geolocation | undefined} */
     let geolocation = undefined;

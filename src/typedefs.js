@@ -64,6 +64,7 @@ const ExportUrlsDeduper = require('./helper-classes/export-urls-deduper');
  * @property {string} [lng]
  * @property {string} [county]
  * @property {string} [country]
+ * @property {string} [countryCode]
  * @property {string} [state]
  * @property {string} [city]
  * @property {string} [postalCode]

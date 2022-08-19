@@ -30,8 +30,8 @@ Apify.main(async () => {
     const {
         // Search and Start URLs
         startUrls, searchStringsArray = [], allPlacesNoSearchAction = '',
-        // Geolocation
-        lat, lng, country, state, county, city, postalCode, zoom, customGeolocation,
+        // Geolocation (country is deprecated but we will leave for a long time)
+        lat, lng, country, countryCode, state, county, city, postalCode, zoom, customGeolocation,
         // browser and request options
         pageLoadTimeoutSec = 60, useChrome = false, maxConcurrency, maxPagesPerBrowser = 1, maxPageRetries = 6,
         // Misc
@@ -97,7 +97,9 @@ Apify.main(async () => {
             lat,
             lng,
             userOverridingZoom: zoom,
-            country,
+            // country is deprecated but we use it for backwards compatibility
+            // our search works the same with code or full name
+            country: countryCode || country,
             state,
             county,
             city,
