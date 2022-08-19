@@ -513,9 +513,9 @@
         "city": {
             "title": "City",
             "type": "string",
-            "description": "Set the city where the search should be carried out, e.g., 'Kalamazoo'.",
+            "description": "Set the city where the search should be carried out, e.g., 'New York'.",
             "editor": "textfield",
-            "prefill": "Kalamazoo"
+            "prefill": "New York"
         },
         "maxCrawledPlaces": {
             "title": "Limit the number of places per whole search",
