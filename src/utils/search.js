@@ -92,7 +92,7 @@ exports.prepareSearchUrlsAndGeo = async ({ lat, lng, userOverridingZoom, country
         }
         startUrlSearches.push(`https://www.google.com/maps/@${lat},${lng},${zoom}z/search`);
     } else {
-        startUrlSearches.push('https://www.google.com/maps/search/');
+        startUrlSearches.push('https://www.google.com/maps/search');
     }
     return { startUrlSearches, geolocation };
 };

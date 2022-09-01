@@ -139,6 +139,11 @@ module.exports.setUpCrawler = ({ crawlerOptions, scrapingOptions, helperClasses 
             request.url = mapUrl.toString();
 
             // This was setup by Jir Lafek (zzbazza) to work with geolocation splitting
+            // TODO: The idea is that we are using predictable squares that we can fit into the polygons
+            // The problem is that when the search term is typed, the left bar with places takes over left half of the screen
+            // So in reality, our viewport is more like ({ width: 400, height: 800 })
+            // We need to play with it and improve that
+            // https://github.com/drobnikj/crawler-google-places/issues/298
             await page.setViewport({ width: 800, height: 800 });
 
             // We must reset this if we crash and retry in the middle of consent approval

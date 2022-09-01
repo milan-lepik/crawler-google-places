@@ -156,9 +156,10 @@ Apify.main(async () => {
                 } else if (startUrlSearches) {
                     // For each search, we use the geolocated URLs
                     for (const startUrlSearch of startUrlSearches) {
+                        const urlWithSearchString = `${startUrlSearch}/${searchString}`;
                         startRequests.push({
-                            url: startUrlSearch,
-                            uniqueKey: `${startUrlSearch}+${searchString}`,
+                            url: urlWithSearchString,
+                            uniqueKey: urlWithSearchString,
                             userData: { label: 'startUrl', searchString },
                         });
                     }

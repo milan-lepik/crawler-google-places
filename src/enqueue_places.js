@@ -9,9 +9,10 @@ const PlacesCache = require('./helper-classes/places_cache'); // eslint-disable-
 const MaxCrawledPlacesTracker = require('./helper-classes/max-crawled-places'); // eslint-disable-line no-unused-vars
 const ExportUrlsDeduper = require('./helper-classes/export-urls-deduper'); // eslint-disable-line no-unused-vars
 
-const { sleep, log } = Apify.utils;
+const { log } = Apify.utils;
 const { MAX_PLACES_PER_PAGE, PLACE_TITLE_SEL, NO_RESULT_XPATH } = require('./consts');
-const { waitForGoogleMapLoader, parseZoomFromUrl, moveMouseThroughPage, getScreenshotPinsFromExternalActor } = require('./utils/misc-utils');
+const { parseZoomFromUrl, moveMouseThroughPage, getScreenshotPinsFromExternalActor } = require('./utils/misc-utils');
+const { searchInputBoxFlow } = require('./utils/search-page');
 const { parseSearchPlacesResponseBody } = require('./place-extractors/general');
 const { checkInPolygon } = require('./utils/polygon');
 
@@ -282,33 +283,11 @@ module.exports.enqueueAllPlaceDetails = async ({
         return;
     }
 
-    // there is no searchString when startUrls are used
-    if (searchString) {
-        await page.waitForSelector('#searchboxinput', { timeout: 15000 });
-        await page.type('#searchboxinput', searchString);
-    }
-
-    await sleep(5000);
-    try {
-        await page.click('#searchbox-searchbutton');
-    } catch (e) {
-        const error = /** @type {Error} */ (e);
-        log.warning(`click#searchbox-searchbutton ${error.message}`);
-        try {
-             /** @type {Puppeteer.ElementHandle<HTMLElement> | null} */
-            const retryClickSearchButton = await page.$('#searchbox-searchbutton');
-            if (!retryClickSearchButton) {
-                throw new Error('Retry click search button was not found on the page.');
-            }
-            await retryClickSearchButton.evaluate(b => b.click());
-        } catch (eOnRetry) {
-            const eOnRetryError = /** @type {Error} */ (eOnRetry);
-            log.warning(`retryClickSearchButton ${eOnRetryError.message}`);
-            await page.keyboard.press('Enter');
-        }
-    }
-    await sleep(5000);
-    await waitForGoogleMapLoader(page);
+    await page.click('#searchbox-searchbutton');
+    // In the past, we did input flow with typing the search, it is not necessary and it is slow
+    // but maybe it had some anti-blocking effect
+    // Leaving this comment here until we test current code well and then we can remove it
+    // await searchInputBoxFlow(page, searchString);
 
     const startZoom = /** @type {number} */ (parseZoomFromUrl(page.url()));
 
@@ -412,9 +391,9 @@ module.exports.enqueueAllPlaceDetails = async ({
             return;
         }
 
-        
-        // We wait between 2 and 4 sec to simulate real scrolling
-        await page.waitForTimeout(2000 + Math.ceil(2000 * Math.random()))
+        // We wait between 2 and 3 sec to simulate real scrolling
+        // It seems if we go faster than 2 sec, we sometimes miss some data (not sure why yet)
+        await page.waitForTimeout(2000 + Math.ceil(1000 * Math.random()))
         // We need to have mouse in the left scrolling panel
         await page.mouse.move(10, 300);
         await page.waitForTimeout(100);
