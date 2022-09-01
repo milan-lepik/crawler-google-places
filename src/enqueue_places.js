@@ -71,12 +71,11 @@ const enqueuePlacesFromResponse = (options) => {
             // @ts-ignore
             const pageNumber = parseInt(queryParams.ech, 10);
 
-            // Cleanup for this page
-            pageStats.enqueued = 0;
-            pageStats.pushed = 0;
+            // We use local variable so we assign this at one point with all other stats
+            // because we depend on it when checking if we should finish
+            let enqueued = 0;
+            let pushed = 0;
 
-            pageStats.totalFound += placesPaginationData.length;
-            pageStats.found = placesPaginationData.length;
             for (const placePaginationData of placesPaginationData) {
                 index++;
                 const rank = ((pageNumber - 1) * 20) + (index + 1);
@@ -102,8 +101,7 @@ const enqueuePlacesFromResponse = (options) => {
                     let shouldScrapeMore = true;
                     if (!wasAlreadyPushed) {
                         shouldScrapeMore = maxCrawledPlacesTracker.setScraped();
-                        pageStats.pushed++;
-                        pageStats.totalPushed++;
+                        pushed++;
                         await Apify.pushData({
                             url: `https://www.google.com/maps/search/?api=1&query=${searchString}&query_place_id=${placePaginationData.placeId}`,
                         });
@@ -125,6 +123,7 @@ const enqueuePlacesFromResponse = (options) => {
                             + `--- ${searchString} - ${request.url}`);
                         break;
                     }
+
                     const { wasAlreadyPresent } = await requestQueue.addRequest({
                             url: placeUrl,
                             uniqueKey: placePaginationData.placeId,
@@ -141,8 +140,7 @@ const enqueuePlacesFromResponse = (options) => {
                         },
                         { forefront: true });
                     if (!wasAlreadyPresent) {
-                        pageStats.enqueued++;
-                        pageStats.totalEnqueued++;
+                        enqueued++;
                     } else {
                         // log.warning(`Google presented already enqueued place, skipping... --- ${placeUrl}`)
                         maxCrawledPlacesTracker.enqueuedTotal--;
@@ -150,6 +148,15 @@ const enqueuePlacesFromResponse = (options) => {
                     }
                 }
             }
+
+            pageStats.found = placesPaginationData.length;
+            pageStats.totalFound += placesPaginationData.length;
+            pageStats.enqueued = enqueued;
+            pageStats.totalEnqueued += enqueued;
+            pageStats.pushed = pushed;
+            pageStats.totalPushed += pushed;
+            
+
             const numberOfAds = placesPaginationData.filter((item) => item.isAdvertisement).length;
             // Detail preview page goes one by one so should be logged after
             if (isSearchPage) {
@@ -354,7 +361,7 @@ module.exports.enqueueAllPlaceDetails = async ({
         // They load via XHR only each batch of 20 places so there will be about 6 of empty scrolls
         // but should not be too many
         if (numberOfEmptyScrolls >= 10) {
-            log.warning(`${logBaseScroll} Finishing scroll with ${pageStats.totalFound} results because scrolling doesn't yiled any more results (and is less than maximum ${MAX_PLACES_PER_PAGE}) --- ${request.url}`);
+            log.info(`${logBaseScroll} Finishing scroll with ${pageStats.totalFound} results because scrolling doesn't yiled any more results (and is less than maximum ${MAX_PLACES_PER_PAGE}) --- ${request.url}`);
             return;
         }
 
@@ -391,7 +398,17 @@ module.exports.enqueueAllPlaceDetails = async ({
         }
 
         if (pageStats.totalFound >= MAX_PLACES_PER_PAGE) {
-            log.warning(`${logBaseScroll} Finishing scrolling with ${pageStats.totalFound} results for this page because we found maximum (${MAX_PLACES_PER_PAGE}) places per page - ${request.url}`);
+            log.info(`${logBaseScroll} Finishing scrolling with ${pageStats.totalFound} results for this page because we found maximum (${MAX_PLACES_PER_PAGE}) places per page - ${request.url}`);
+            return;
+        }
+
+        // This is a bit controversial optimization but in 99% cases it should be fine
+        // Google first gives you the most close relevant results
+        // Subsequent scrolls give you places further away that might not be in your current map square
+        // So if we only get duplicate places on the first scroll, we are super unlikely to get any relevant later
+        // NOTE: If you want this to be changed, be very careful how are these populated
+        if (pageStats.found > 0 && (pageStats.enqueued + pageStats.pushed) === 0) {
+            log.info(`${logBaseScroll} Finishing scrolling with ${pageStats.totalFound} results for this page because we only found places we already have or that are outside of required location - ${request.url}`);
             return;
         }
 
