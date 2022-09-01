@@ -1,3 +1,7 @@
+# 2022-09-02
+*Fixes*
+- Several optimizations to speed up the search page (scrolling & enqueueing places)
+
 # 2022-08-16
 *Fixes*
 - Improve extraction of additional infos for hotels.
