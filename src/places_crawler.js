@@ -6,12 +6,12 @@ const typedefs = require('./typedefs'); // eslint-disable-line no-unused-vars
 const { enqueueAllPlaceDetails } = require('./enqueue_places');
 const { handlePlaceDetail } = require('./detail_page_handle');
 const {
-    waitAndHandleConsentScreen, waiter,
+    waitAndHandleConsentScreen, waiter, blockRequestsForOptimization,
 } = require('./utils/misc-utils');
 const { LABELS } = require('./consts');
 
 const { log } = Apify.utils;
-const { injectJQuery, blockRequests } = Apify.utils.puppeteer;
+const { injectJQuery } = Apify.utils.puppeteer;
 
 /**
  * @param {{
@@ -122,18 +122,8 @@ module.exports.setUpCrawler = ({ crawlerOptions, scrapingOptions, helperClasses 
             
             const mapUrl = new URL(request.url);
 
-            // Never block images for allPlacesNoSearch to keep pins visible
-            if (!allPlacesNoSearchAction && !maxImages) {
-                // https://lh5.googleusercontent.com/p/AF1QipMInapT8CB8U-QFRfRceZtzxbX5QRw0NJ08Fc7t=w408-h272-k-no
-                // We need map working for search scrolling
-                const extraUrlPatterns = request.userData.label === LABELS.PLACE
-                    ? ['maps/vt', 'preview/log204', '/earth/BulkMetadata/', 'googleusercontent.com']
-                    : [];
-                await blockRequests(page, {
-                    extraUrlPatterns,
-                });
-            }
-            
+            await blockRequestsForOptimization(page, request.userData.label, maxImages, allPlacesNoSearchAction);
+
             if (language) {
                 mapUrl.searchParams.set('hl', language);
             }

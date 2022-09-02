@@ -727,10 +727,10 @@
             "default": false
         },
         "maxImages": {
-            "title": "Limit the number of images",
+            "title": "Limit the number of images (images are very slow)",
             "type": "integer",
             "description": "Maximum number of images per place. If you fill in 0 or nothing, no images will be scraped. To extract all images, type '99999' into the field. The higher the number, the slower the search.",
-            "prefill": 1,
+            "prefill": 0,
             "unit": "images per place"
         },
         "maxReviews": {

@@ -263,6 +263,7 @@ module.exports.enqueueAllPlaceDetails = async ({
     });
 
     // Special case that works completely differently
+    // TODO: Make it work with scrolling
     if (searchString?.startsWith('all_places_no_search')) {
         await Apify.utils.sleep(10000);
         // dismiss covid warning panel
@@ -283,6 +284,7 @@ module.exports.enqueueAllPlaceDetails = async ({
         return;
     }
 
+    await page.waitForSelector('#searchbox-searchbutton', { timeout: 10000 });
     await page.click('#searchbox-searchbutton');
     // In the past, we did input flow with typing the search, it is not necessary and it is slow
     // but maybe it had some anti-blocking effect
