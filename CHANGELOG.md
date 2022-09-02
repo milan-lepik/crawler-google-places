@@ -1,6 +1,7 @@
 # 2022-09-02
 *Fixes*
 - Several optimizations to speed up the search page (scrolling & enqueueing places)
+- Fixed extraction of images
 
 # 2022-08-16
 *Fixes*

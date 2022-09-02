@@ -90,24 +90,6 @@ module.exports.moveMouseThroughPage = async (page, pageStats, ocrCoordinates) =>
 }
 
 /**
- * Method scrolls page to xpos, ypos.
- * @param {Puppeteer.Page} page
- * @param {string} selectorToScroll
- * @param {number} scrollToHeight
- */
-module.exports.scrollTo = async (page, selectorToScroll, scrollToHeight) => {
-    try {
-        await page.waitForSelector(selectorToScroll);
-    } catch (e) {
-        log.warning(`Could not find selector ${selectorToScroll} to scroll to - ${page.url()}`);
-    }
-    await page.evaluate((selector, height) => {
-        const scrollable = document.querySelector(selector);
-        scrollable.scrollTop = height;
-    }, selectorToScroll, scrollToHeight);
-};
-
-/**
  *
  * @param {string} sheetUrl
  * @returns {string | null} downloadUrl
