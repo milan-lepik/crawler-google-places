@@ -14,6 +14,7 @@ const { createStartRequestsWithWalker } = require('./utils/walker');
 const { makeInputBackwardsCompatible, validateInput, getValidStartRequests, adjustInput } = require('./utils/input-validation');
 const { parseRequestsFromStartUrls } = require('./utils/misc-utils');
 const { setUpEnqueueingInBackground } = require('./utils/background-enqueue');
+const { LABELS } = require('./consts');
 
 const { log } = Apify.utils;
 
@@ -151,7 +152,7 @@ Apify.main(async () => {
                     startRequests.push({
                         url: `https://www.google.com/maps/search/?api=1&query=${cleanSearch}&query_place_id=${placeId}`,
                         uniqueKey: placeId,
-                        userData: { label: 'detail', searchString },
+                        userData: { label: LABELS.PLACE, searchString },
                     });
                 } else if (startUrlSearches) {
                     // For each search, we use the geolocated URLs
@@ -160,7 +161,7 @@ Apify.main(async () => {
                         startRequests.push({
                             url: urlWithSearchString,
                             uniqueKey: urlWithSearchString,
-                            userData: { label: 'startUrl', searchString },
+                            userData: { label: LABELS.SEARCH, searchString },
                         });
                     }
                 }
@@ -172,7 +173,7 @@ Apify.main(async () => {
                 startRequests.push({
                     url: `https://www.google.com/maps/search/?api=1&query=${searchString}&query_place_id=${placeId}`,
                     uniqueKey: placeId,
-                    userData: { label: 'detail', searchString, rank: null },
+                    userData: { label: LABELS.PLACE, searchString, rank: null },
                 });
             }
         }

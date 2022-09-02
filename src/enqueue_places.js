@@ -10,7 +10,7 @@ const MaxCrawledPlacesTracker = require('./helper-classes/max-crawled-places'); 
 const ExportUrlsDeduper = require('./helper-classes/export-urls-deduper'); // eslint-disable-line no-unused-vars
 
 const { log } = Apify.utils;
-const { MAX_PLACES_PER_PAGE, PLACE_TITLE_SEL, NO_RESULT_XPATH } = require('./consts');
+const { MAX_PLACES_PER_PAGE, PLACE_TITLE_SEL, NO_RESULT_XPATH, LABELS } = require('./consts');
 const { parseZoomFromUrl, moveMouseThroughPage, getScreenshotPinsFromExternalActor } = require('./utils/misc-utils');
 const { searchInputBoxFlow } = require('./utils/search-page');
 const { parseSearchPlacesResponseBody } = require('./place-extractors/general');
@@ -129,7 +129,7 @@ const enqueuePlacesFromResponse = (options) => {
                             url: placeUrl,
                             uniqueKey: placePaginationData.placeId,
                             userData: {
-                                label: 'detail',
+                                label: LABELS.PLACE,
                                 searchString,
                                 rank,
                                 searchPageUrl,

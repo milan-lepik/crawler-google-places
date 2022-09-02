@@ -8,6 +8,7 @@ const { handlePlaceDetail } = require('./detail_page_handle');
 const {
     waitAndHandleConsentScreen, waiter,
 } = require('./utils/misc-utils');
+const { LABELS } = require('./consts');
 
 const { log } = Apify.utils;
 const { injectJQuery, blockRequests } = Apify.utils.puppeteer;
@@ -24,8 +25,6 @@ const handlePageFunctionExtended = async ({ pageContext, scrapingOptions, helper
     const { stats, errorSnapshotter, maxCrawledPlacesTracker } = helperClasses;
 
     const { label, searchString } = /** @type {{ label: string, searchString: string }} */ (request.userData);
-
-    const logLabel = label === 'startUrl' ? 'SEARCH' : 'PLACE';
 
     // TODO: Figure out how to remove the timeout and still handle consent screen
     // Handle consent screen, this wait is ok because we wait for selector later anyway
@@ -44,14 +43,14 @@ const handlePageFunctionExtended = async ({ pageContext, scrapingOptions, helper
     try {
         // Check if Google shows captcha
         if (await page.$('form#captcha-form')) {
-            throw `[${logLabel}]: Got CAPTCHA on page, retrying --- ${searchString || ''} ${request.url}`;
+            throw `[${label}]: Got CAPTCHA on page, retrying --- ${searchString || ''} ${request.url}`;
         }
-        if (label === 'startUrl') {
+        if (label === LABELS.SEARCH) {
             if (!maxCrawledPlacesTracker.canEnqueueMore(searchString || request.url)) {
                 // No need to log anything here as it was already logged for this search
                 return;
             }
-            log.info(`[${logLabel}]: Start enqueuing places details for search --- ${searchString || ''} ${request.url}`);
+            log.info(`[${label}]: Start enqueuing places details for search --- ${searchString || ''} ${request.url}`);
             await errorSnapshotter.tryWithSnapshot(
                 page,
                 async () => enqueueAllPlaceDetails({
@@ -65,11 +64,11 @@ const handlePageFunctionExtended = async ({ pageContext, scrapingOptions, helper
                 }),
             );
 
-            log.info(`[${logLabel}]: Enqueuing places finished for --- ${searchString || ''} ${request.url}`);
+            log.info(`[${label}]: Enqueuing places finished for --- ${searchString || ''} ${request.url}`);
             stats.maps();
-        } else {
+        } else if (label === LABELS.PLACE) {
             // Get data for place and save it to dataset
-            log.info(`[${logLabel}]: Extracting details from place url ${page.url()}`);
+            log.info(`[${label}]: Extracting details from place url ${page.url()}`);
 
             await handlePlaceDetail({
                 page,
@@ -83,6 +82,9 @@ const handlePageFunctionExtended = async ({ pageContext, scrapingOptions, helper
                 maxCrawledPlacesTracker,
                 crawler,
             });
+        } else {
+            // This is developer error, should never happen
+            throw new Error(`Unkown label "${label}" provided in the Request to the Crawler`);
         }
         stats.ok();
     } catch (err) {
@@ -124,11 +126,11 @@ module.exports.setUpCrawler = ({ crawlerOptions, scrapingOptions, helperClasses 
             if (!allPlacesNoSearchAction && !maxImages) {
                 // https://lh5.googleusercontent.com/p/AF1QipMInapT8CB8U-QFRfRceZtzxbX5QRw0NJ08Fc7t=w408-h272-k-no
                 // We need map working for search scrolling
-                const urlPatterns = request.userData.label === 'PLACE'
-                    ? ['/maps/vt/', '/earth/BulkMetadata/', 'googleusercontent.com']
+                const extraUrlPatterns = request.userData.label === LABELS.PLACE
+                    ? ['maps/vt', 'preview/log204', '/earth/BulkMetadata/', 'googleusercontent.com']
                     : [];
                 await blockRequests(page, {
-                    urlPatterns,
+                    extraUrlPatterns,
                 });
             }
             

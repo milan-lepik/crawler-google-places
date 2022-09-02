@@ -1,5 +1,5 @@
 const Apify = require('apify');
-const { REGEXES } = require('../consts');
+const { REGEXES, LABELS } = require('../consts');
 
 const typedefs = require('../typedefs'); // eslint-disable-line no-unused-vars
 const { normalizePlaceUrl } = require('./misc-utils');
@@ -162,7 +162,11 @@ module.exports.getValidStartRequests = (updatedStartUrls) => {
             }
             startRequests.push({
                 ...req,
-                userData: { label: isPlace ? 'detail' : 'startUrl', searchString: null, baseUrl: req.url },
+                userData: {
+                    label: isPlace ? LABELS.PLACE : LABELS.SEARCH,
+                    searchString: null,
+                    baseUrl: req.url
+                },
             });
         }
     }

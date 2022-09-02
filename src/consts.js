@@ -23,6 +23,11 @@ exports.REGEXES = {
     SEARCH_URL_NORMAL: /google\.[a-z.]+\/maps\/search/,
 }
 
+exports.LABELS = {
+    PLACE: 'PLACE',
+    SEARCH: 'SEARCH',
+}
+
 exports.GEO_TO_DEFAULT_ZOOM = {
     country: 12,
     state: 12,
