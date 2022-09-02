@@ -11,7 +11,7 @@ const ExportUrlsDeduper = require('./helper-classes/export-urls-deduper'); // es
 
 const { log } = Apify.utils;
 const { MAX_PLACES_PER_PAGE, PLACE_TITLE_SEL, NO_RESULT_XPATH, LABELS } = require('./consts');
-const { parseZoomFromUrl, moveMouseThroughPage, getScreenshotPinsFromExternalActor } = require('./utils/misc-utils');
+const { parseZoomFromUrl, moveMouseThroughPage, getScreenshotPinsFromExternalActor, waiter } = require('./utils/misc-utils');
 const { searchInputBoxFlow } = require('./utils/search-page');
 const { parseSearchPlacesResponseBody } = require('./place-extractors/general');
 const { checkInPolygon } = require('./utils/polygon');
@@ -312,10 +312,13 @@ module.exports.enqueueAllPlaceDetails = async ({
         return;
     } 
 
-    // If we search for very specific place, it loads it directly
-    // but enqueuing will still process it in separate page
+    // If we search for very specific place, it redirects us to the place page right away
+    // Unofortunately, this page lacks the JSON data as we need it
+    // So we still enqueue it separately
     if (isPlaceDetail) {
         log.warning(`${logBase} Finishing scroll because we loaded a single place page directly - ${request.url}`);
+        // We must wait a bit for the response to be intercepted
+        await waiter(() => pageStats.totalEnqueued > 0, { timeout: 10000, timeoutErrorMeesage: 'Could not enqueue single place'})
         return;
     }
 

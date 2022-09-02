@@ -33,7 +33,10 @@ const handlePageFunctionExtended = async ({ pageContext, scrapingOptions, helper
     // @ts-ignore I'm not sure how we could fix the types here
     if (request.userData.waitingForConsent !== undefined) {
         // @ts-ignore  I'm not sure how we could fix the types here
-        await waiter(() => request.userData.waitingForConsent === false);
+        await waiter(
+            () => request.userData.waitingForConsent === false,
+            { timeout: 70000, timeoutErrorMeesage: 'Waiting for cookie consent timeouted, reloading page again' }
+        );
     }
 
     // Inject JQuery crashes on consent screen
