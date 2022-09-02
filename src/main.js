@@ -42,7 +42,7 @@ Apify.main(async () => {
 
         // Scraping options
         includeHistogram = false, includeOpeningHours = false, includePeopleAlsoSearch = false,
-        maxReviews = 0, maxImages = 1, exportPlaceUrls = false, additionalInfo = false,
+        maxReviews = 0, maxImages = 0, exportPlaceUrls = false, additionalInfo = false,
         maxCrawledPlaces = 99999999, maxCrawledPlacesPerSearch = maxCrawledPlaces,
         maxAutomaticZoomOut, reviewsTranslation = 'originalAndTranslated', oneReviewPerRow = false,
         // For some rare places, Google doesn't show all reviews unless in newest sorting
