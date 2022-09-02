@@ -31,6 +31,12 @@
 					"display": {
 						"component": "table",
 						"properties": {
+							"url": {
+								"style": {
+									"maxWidth": "10rem",
+									"width": "10%"
+								}
+							},
 							"title": {
 								"label": "Place name"
 							}
