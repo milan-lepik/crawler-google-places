@@ -318,7 +318,7 @@ module.exports.enqueueAllPlaceDetails = async ({
     if (isPlaceDetail) {
         log.warning(`${logBase} Finishing scroll because we loaded a single place page directly - ${request.url}`);
         // We must wait a bit for the response to be intercepted
-        await waiter(() => pageStats.totalEnqueued > 0, { timeout: 10000, timeoutErrorMeesage: 'Could not enqueue single place'})
+        await waiter(() => pageStats.totalEnqueued > 0, { timeout: 30000, timeoutErrorMeesage: 'Could not enqueue single place'})
         return;
     }
 
