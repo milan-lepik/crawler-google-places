@@ -918,6 +918,12 @@
             "prefill": "",
             "sectionCaption": "Scraping places without search terms or URLs",
             "sectionDescription": "This option will get you all places from a specific search area, no matter if they are bakeries or petrol stations. The scrape however will be significantly slower and more costly than using a regular search, so we don't recommend using this unless strictly necessary."
+        },
+        "maxPagesPerBrowser": {
+            "title": "Max pages per browser",
+            "type": "integer",
+            "description": "...hidden...",
+            "editor": "hidden"
         }
     },
     "required": [
