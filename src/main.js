@@ -34,7 +34,7 @@ Apify.main(async () => {
         // Geolocation (country is deprecated but we will leave for a long time)
         lat, lng, country, countryCode, state, county, city, postalCode, zoom, customGeolocation,
         // browser and request options
-        pageLoadTimeoutSec = 60, useChrome = false, maxConcurrency, maxPagesPerBrowser = 1, maxPageRetries = 6,
+        pageLoadTimeoutSec = 60, useChrome = false, maxConcurrency, maxPagesPerBrowser = 10, maxPageRetries = 6,
         // Misc
         proxyConfig, debug = false, language = 'en', headless = true,
         // walker is undocumented feature added by jakubdrobnik, we need to test it and document it
