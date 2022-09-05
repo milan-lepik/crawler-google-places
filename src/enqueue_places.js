@@ -284,8 +284,14 @@ module.exports.enqueueAllPlaceDetails = async ({
         return;
     }
 
+    // We already have the results loaded but to get them via XHR, we need to click again
+    // This is not abosolutely necessary but we would need to rewrite and complicate the parser
     await page.waitForSelector('#searchbox-searchbutton', { timeout: 10000 });
     await page.click('#searchbox-searchbutton');
+    // We need to wait for the XHR request to fire
+    // TODO: We could compare the expected number of places if we got any new ones 
+    await page.waitForTimeout(2000);
+
     // In the past, we did input flow with typing the search, it is not necessary and it is slow
     // but maybe it had some anti-blocking effect
     // Leaving this comment here until we test current code well and then we can remove it
