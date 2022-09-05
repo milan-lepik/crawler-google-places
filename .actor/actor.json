@@ -33,9 +33,10 @@
 						"properties": {
 							"url": {
 								"style": {
-									"maxWidth": "10rem",
-									"width": "10%"
-								}
+									"max-width": "10rem",
+									"width": "100px"
+								},
+								"format":"text"
 							},
 							"title": {
 								"label": "Place name"
