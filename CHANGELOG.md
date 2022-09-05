@@ -1,3 +1,7 @@
+# 2022-09-05
+*Fixes*
+- Final round of optimizations and fixes of the search process. The scraper is now probably the fastest is has ever been finally reaching about 100 places per 1 compute unit even with using geolocation.
+
 # 2022-09-02
 *Fixes*
 - Several optimizations to speed up the search page (scrolling & enqueueing places)
