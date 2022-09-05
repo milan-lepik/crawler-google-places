@@ -9,10 +9,10 @@ const PlacesCache = require('./helper-classes/places_cache'); // eslint-disable-
 const MaxCrawledPlacesTracker = require('./helper-classes/max-crawled-places'); // eslint-disable-line no-unused-vars
 const ExportUrlsDeduper = require('./helper-classes/export-urls-deduper'); // eslint-disable-line no-unused-vars
 
-const { log } = Apify.utils;
+const { log, sleep } = Apify.utils;
 const { MAX_PLACES_PER_PAGE, PLACE_TITLE_SEL, NO_RESULT_XPATH, LABELS } = require('./consts');
 const { parseZoomFromUrl, moveMouseThroughPage, getScreenshotPinsFromExternalActor, waiter } = require('./utils/misc-utils');
-const { searchInputBoxFlow } = require('./utils/search-page');
+const { searchInputBoxFlow, getPlacesCountInUI } = require('./utils/search-page');
 const { parseSearchPlacesResponseBody } = require('./place-extractors/general');
 const { checkInPolygon } = require('./utils/polygon');
 
@@ -288,9 +288,6 @@ module.exports.enqueueAllPlaceDetails = async ({
     // This is not abosolutely necessary but we would need to rewrite and complicate the parser
     await page.waitForSelector('#searchbox-searchbutton', { timeout: 10000 });
     await page.click('#searchbox-searchbutton');
-    // We need to wait for the XHR request to fire
-    // TODO: We could compare the expected number of places if we got any new ones 
-    await page.waitForTimeout(2000);
 
     // In the past, we did input flow with typing the search, it is not necessary and it is slow
     // but maybe it had some anti-blocking effect
@@ -300,6 +297,12 @@ module.exports.enqueueAllPlaceDetails = async ({
     const startZoom = /** @type {number} */ (parseZoomFromUrl(page.url()));
 
     const logBase = `[SEARCH][${searchString}]`;
+
+    // We check if we already processed the response for the newly loaded UI places, if yes, we can continue
+    let placesCountInUI = await getPlacesCountInUI(page);
+    await waiter(() => pageStats.totalFound >= placesCountInUI, { noThrow: true, timeout: 5000 });
+    // Sanity sleep 
+    await sleep(500);
 
     // There can be many states other than loaded results
     const { noOutcomeLoaded, hasNoResults, isBadQuery, isPlaceDetail } = await waitForSearchResults(page);
@@ -335,8 +338,10 @@ module.exports.enqueueAllPlaceDetails = async ({
     for (;;) {
         const logBaseScroll = `${logBase}[SCROLL: ${pageStats.pageNum}]:`
         // Check if we grabbed all results for this search
+        // We also need to check that these were processed already so we don't finish too fast
         const noMoreResults = await page.$('.HlvSq');
         if (noMoreResults) {
+            
             log.info(`${logBase} Finishing search because we reached all ${pageStats.totalFound} results - ${request.url}`);
             return;
         }
@@ -402,9 +407,6 @@ module.exports.enqueueAllPlaceDetails = async ({
             return;
         }
 
-        // We wait between 2 and 3 sec to simulate real scrolling
-        // It seems if we go faster than 2 sec, we sometimes miss some data (not sure why yet)
-        await page.waitForTimeout(2000 + Math.ceil(1000 * Math.random()))
         // We need to have mouse in the left scrolling panel
         await page.mouse.move(10, 300);
         await page.waitForTimeout(100);
@@ -412,5 +414,12 @@ module.exports.enqueueAllPlaceDetails = async ({
         await page.mouse.wheel({ deltaY: 800 });
         // await waitForGoogleMapLoader(page);
         pageStats.pageNum++;
+
+        // We wait between 2 and 3 sec to simulate real scrolling
+        // It seems if we go faster than 2 sec, we sometimes miss some data (not sure why yet)
+        await page.waitForTimeout(2000 + Math.ceil(1000 * Math.random()))
+
+        placesCountInUI =  await getPlacesCountInUI(page);
+        await waiter(() => pageStats.totalFound >= placesCountInUI, { noThrow: true, timeout: 5000 }); 
     }
 };

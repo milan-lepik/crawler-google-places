@@ -225,9 +225,10 @@ module.exports.parseZoomFromUrl = (url) => {
  * @param {number} [options.pollInterval]
  * @param {string} [options.timeoutErrorMeesage]
  * @param {string} [options.successMessage]
+ * @param {boolean} [options.noThrow]
  */
 const waiter = async (predicate, options = {}) => {
-    const { timeout = 120000, pollInterval = 1000, timeoutErrorMeesage, successMessage } = options;
+    const { timeout = 120000, pollInterval = 1000, timeoutErrorMeesage, successMessage, noThrow = false } = options;
     const start = Date.now();
     for (;;) {
         if (await predicate()) {
@@ -238,6 +239,9 @@ const waiter = async (predicate, options = {}) => {
         }
         const waitingFor = Date.now() - start;
         if (waitingFor > timeout) {
+            if (noThrow) {
+                return;
+            }
             throw new Error(timeoutErrorMeesage || `Timeout reached when waiting for predicate for ${waitingFor} ms`);
         }
         await new Promise((resolve) => setTimeout(resolve, pollInterval));
