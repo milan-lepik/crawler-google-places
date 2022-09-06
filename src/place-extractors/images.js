@@ -6,6 +6,9 @@ const { log, sleep } = Apify.utils;
 
 const { navigateBack } = require('../utils/misc-utils');
 
+// We need to be careful that it works only for images of the images scrolling page, not on main place page
+const IMAGES_SELECTOR = 'a[data-photo-index]';
+
 /** @param {string[]} imageUrls */
 const enlargeImageUrls = (imageUrls) => {
     // w1920-h1080
@@ -61,6 +64,7 @@ module.exports.extractImages = async ({ page, maxImages, targetReviewsCount, pla
     if (maxImages > 1) {
         await sleep(2000);
         await mainImage?.click();
+        await page.waitForSelector(IMAGES_SELECTOR);
         await sleep(500);
         let lastImage = null;
         let imageUrls = [];
@@ -68,10 +72,10 @@ module.exports.extractImages = async ({ page, maxImages, targetReviewsCount, pla
         log.info(`[PLACE]: Infinite scroll for images started, url: ${placeUrl}`);
 
         for (;;) {
-            imageUrls = await page.evaluate(() => {
+            imageUrls = await page.evaluate((IMAGES_SELECTOR) => {
                 /** @type {string[]} */
                 const urls = [];
-                $('[data-photo-index]').each((_i, el) => {
+                $(IMAGES_SELECTOR).each((_i, el) => {
                     // @ts-ignore
                     const urlMatch = $(el).find('div').eq(0).attr('style').match(/url\("(.*)"\)/);
                     if (!urlMatch) return;
@@ -80,7 +84,7 @@ module.exports.extractImages = async ({ page, maxImages, targetReviewsCount, pla
                     urls.push(imageUrl);
                 });
                 return urls;
-            });
+            }, IMAGES_SELECTOR);
             if (imageUrls.length >= maxImages || lastImage === imageUrls[imageUrls.length - 1]) {
                 log.info(`[PLACE]: Infinite scroll for images finished, url: ${placeUrl}`);
                 break;

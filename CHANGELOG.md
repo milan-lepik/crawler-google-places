@@ -1,3 +1,7 @@
+# 2022-09-06
+*Fixes*
+- Fixes unstable image extraction
+
 # 2022-09-05
 *Fixes*
 - Final round of optimizations and fixes of the search process. The scraper is now probably the fastest is has ever been finally reaching about 100 places per 1 compute unit even with using geolocation.
