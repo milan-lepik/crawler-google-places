@@ -15,7 +15,6 @@
 					"description": "It can take about one minute until the first results are available.",
 					"transformation": {
 						"fields": [
-							"url",
 							"title",
 							"totalScore",
 							"reviewsCount",
@@ -25,19 +24,13 @@
 							"countryCode",
 							"website",
 							"phone",
-							"categoryName"
+							"categoryName",
+							"url"
 						]
 					},
 					"display": {
 						"component": "table",
 						"properties": {
-							"url": {
-								"style": {
-									"max-width": "10rem",
-									"width": "100px"
-								},
-								"format":"text"
-							},
 							"title": {
 								"label": "Place name"
 							}
