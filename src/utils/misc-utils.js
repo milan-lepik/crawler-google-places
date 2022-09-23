@@ -462,3 +462,12 @@ module.exports.blockRequestsForOptimization = async (page, label, maxImages, all
     // @ts-ignore
     await blockRequests(page, blockRequestsOptions);
 }
+
+module.exports.abortRunIfReachedMaxPlaces = async ({ searchString, request, page, crawler }) => {
+    log.warning(`[SEARCH]: Finishing scraping because we reached maxCrawledPlaces `
+        // + `currently: ${maxCrawledPlacesTracker.enqueuedPerSearch[searchKey]}(for this search)/${maxCrawledPlacesTracker.enqueuedTotal}(total) `
+        + `--- ${searchString} - ${request.url}`);
+    // We need to wait a bit so the pages got processed and data pushed
+    await page.waitForTimeout(5000);
+    await crawler.autoscaledPool?.abort();
+}

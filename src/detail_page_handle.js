@@ -11,7 +11,7 @@ const { extractPageData, extractPopularTimes, extractOpeningHours, extractPeople
 const { extractImages } = require('./place-extractors/images');
 const { extractReviews } = require('./place-extractors/reviews');
 const { DEFAULT_TIMEOUT, PLACE_TITLE_SEL } = require('./consts');
-const { waitForGoogleMapLoader } = require('./utils/misc-utils');
+const { waitForGoogleMapLoader, abortRunIfReachedMaxPlaces } = require('./utils/misc-utils');
 
 const { log } = Apify.utils;
 
@@ -289,11 +289,9 @@ module.exports.handlePlaceDetail = async (options) => {
     
     stats.places();
     log.info(`[PLACE]: Place scraped successfully --- ${url}`);
+    // We must not pass a searchString here because it aborts the whole run. We expect the global max to be correctly set.
     const shouldScrapeMore = maxCrawledPlacesTracker.setScraped();
     if (!shouldScrapeMore) {
-        log.warning(`[SEARCH]: Finishing scraping because we reached maxCrawledPlaces `
-            // + `currently: ${maxCrawledPlacesTracker.enqueuedPerSearch[searchKey]}(for this search)/${maxCrawledPlacesTracker.enqueuedTotal}(total) `
-            + `--- ${searchString} - ${request.url}`);
-        crawler.autoscaledPool?.abort();
+        await abortRunIfReachedMaxPlaces({ searchString, request, page, crawler });
     }
 };

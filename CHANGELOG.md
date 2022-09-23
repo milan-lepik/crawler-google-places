@@ -1,3 +1,8 @@
+# 2022-09-23
+*Fixes*
+- BREAKING CHANGE: Removed `maxCrawledPlaces` from input completely (use `maxCrawledPlacesPerSearch` instead)
+- Fixed `maxCrawledPlacesPerSearch` leading to scraper being hang out in some cases
+
 # 2022-09-06
 *Fixes*
 - Fixes unstable image extraction
