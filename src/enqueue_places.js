@@ -11,7 +11,7 @@ const ExportUrlsDeduper = require('./helper-classes/export-urls-deduper'); // es
 
 const { log, sleep } = Apify.utils;
 const { MAX_PLACES_PER_PAGE, PLACE_TITLE_SEL, NO_RESULT_XPATH, LABELS } = require('./consts');
-const { parseZoomFromUrl, moveMouseThroughPage, getScreenshotPinsFromExternalActor, waiter } = require('./utils/misc-utils');
+const { parseZoomFromUrl, moveMouseThroughPage, getScreenshotPinsFromExternalActor, waiter, abortRunIfReachedMaxPlaces } = require('./utils/misc-utils');
 const { searchInputBoxFlow, getPlacesCountInUI } = require('./utils/search-page');
 const { parseSearchPlacesResponseBody } = require('./place-extractors/general');
 const { checkInPolygon } = require('./utils/polygon');
@@ -94,26 +94,28 @@ const enqueuePlacesFromResponse = (options) => {
                     continue;
                 }
                 if (exportPlaceUrls) {
+                    // We must not pass a searchString here because it aborts the whole run
+                    // We have to run this code before and after the push because this loop iteration
+                    // can be the first or the last one
                     if (!maxCrawledPlacesTracker.canScrapeMore()) {
+                        await abortRunIfReachedMaxPlaces({ searchString, request, page, crawler });
                         break;
                     }
 
+                    if (!maxCrawledPlacesTracker.canScrapeMore(searchString)) {
+                        break;
+                    }
                     const wasAlreadyPushed = exportUrlsDeduper?.testDuplicateAndAdd(placePaginationData.placeId);
-                    let shouldScrapeMore = true;
                     if (!wasAlreadyPushed) {
-                        shouldScrapeMore = maxCrawledPlacesTracker.setScraped();
+                        
+                        maxCrawledPlacesTracker.setScraped();
                         pushed++;
                         await Apify.pushData({
                             url: `https://www.google.com/maps/search/?api=1&query=${searchString}&query_place_id=${placePaginationData.placeId}`,
                         });
                     }
-                    if (!shouldScrapeMore) {
-                        log.warning(`[SEARCH]: Finishing scraping because we reached maxCrawledPlaces `
-                            // + `currently: ${maxCrawledPlacesTracker.enqueuedPerSearch[searchKey]}(for this search)/${maxCrawledPlacesTracker.enqueuedTotal}(total) `
-                            + `--- ${searchString} - ${request.url}`);
-                        // We need to wait a bit so the pages got processed and data pushed
-                        await page.waitForTimeout(5000);
-                        await crawler.autoscaledPool?.abort();
+                    if (!maxCrawledPlacesTracker.canScrapeMore()) {
+                        await abortRunIfReachedMaxPlaces({ searchString, request, page, crawler });
                         break;
                     }
                 } else {
