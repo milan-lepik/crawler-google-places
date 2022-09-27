@@ -1,7 +1,7 @@
 {
 	"actorSpecification": 1,
 	"name": "crawler-google-places",
-	"title": "Google Search Scraper",
+	"title": "Google Maps Scraper",
 	"description": "", //N<=200, optional, default ""
 	"version": "1.0.0",
 	"storages": {
