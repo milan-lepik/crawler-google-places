@@ -1,6 +1,20 @@
+# 2022-09-23
+*Fixes*
+- BREAKING CHANGE: Removed `maxCrawledPlaces` from input completely (use `maxCrawledPlacesPerSearch` instead)
+- Fixed `maxCrawledPlacesPerSearch` leading to scraper being hang out in some cases
+
+# 2022-09-06
+*Fixes*
+- Fixes unstable image extraction
+
+# 2022-09-05
+*Fixes*
+- Final round of optimizations and fixes of the search process. The scraper is now probably the fastest is has ever been finally reaching about 100 places per 1 compute unit even with using geolocation.
+
 # 2022-09-02
 *Fixes*
 - Several optimizations to speed up the search page (scrolling & enqueueing places)
+- Fixed extraction of images
 
 # 2022-08-16
 *Fixes*

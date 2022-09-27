@@ -1,10 +1,11 @@
 const Apify = require('apify');
 const Puppeteer = require('puppeteer');
 
-const { DEFAULT_TIMEOUT, PLACE_TITLE_SEL, BACK_BUTTON_SEL } = require('../consts');
+const { DEFAULT_TIMEOUT, PLACE_TITLE_SEL, BACK_BUTTON_SEL, LABELS } = require('../consts');
 
 const { utils } = Apify;
 const { log } = utils;
+const { blockRequests } = Apify.utils.puppeteer;
 
 /**
  * Wait until google map loader disappear
@@ -88,24 +89,6 @@ module.exports.moveMouseThroughPage = async (page, pageStats, ocrCoordinates) =>
         done++;
     }
 }
-
-/**
- * Method scrolls page to xpos, ypos.
- * @param {Puppeteer.Page} page
- * @param {string} selectorToScroll
- * @param {number} scrollToHeight
- */
-module.exports.scrollTo = async (page, selectorToScroll, scrollToHeight) => {
-    try {
-        await page.waitForSelector(selectorToScroll);
-    } catch (e) {
-        log.warning(`Could not find selector ${selectorToScroll} to scroll to - ${page.url()}`);
-    }
-    await page.evaluate((selector, height) => {
-        const scrollable = document.querySelector(selector);
-        scrollable.scrollTop = height;
-    }, selectorToScroll, scrollToHeight);
-};
 
 /**
  *
@@ -242,9 +225,10 @@ module.exports.parseZoomFromUrl = (url) => {
  * @param {number} [options.pollInterval]
  * @param {string} [options.timeoutErrorMeesage]
  * @param {string} [options.successMessage]
+ * @param {boolean} [options.noThrow]
  */
 const waiter = async (predicate, options = {}) => {
-    const { timeout = 120000, pollInterval = 1000, timeoutErrorMeesage, successMessage } = options;
+    const { timeout = 120000, pollInterval = 1000, timeoutErrorMeesage, successMessage, noThrow = false } = options;
     const start = Date.now();
     for (;;) {
         if (await predicate()) {
@@ -255,6 +239,9 @@ const waiter = async (predicate, options = {}) => {
         }
         const waitingFor = Date.now() - start;
         if (waitingFor > timeout) {
+            if (noThrow) {
+                return;
+            }
             throw new Error(timeoutErrorMeesage || `Timeout reached when waiting for predicate for ${waitingFor} ms`);
         }
         await new Promise((resolve) => setTimeout(resolve, pollInterval));
@@ -425,3 +412,62 @@ module.exports.unstringifyGoogleXrhResponse = (googleResponseString) => {
     return JSON.parse(googleResponseString.replace(')]}\'', ''));
 };
 
+/** 
+ * @param {Puppeteer.Page} page 
+ * @param {string} label
+ * @param {number} maxImages
+ * @param {string | undefined} allPlacesNoSearchAction
+ */
+module.exports.blockRequestsForOptimization = async (page, label, maxImages, allPlacesNoSearchAction) => {
+    // Blocking requests for optimizations
+    // googleusercontent.com/p is the image file, the rest is needed for scrolling to work
+    const IMAGE_REQUIRED_URL_PATTERNS = ['googleusercontent.com/p' ];
+    const MAP_URL_PATTERNS = ['maps/vt', 'preview/log204', '/earth/BulkMetadata/', 'blob:https'];
+
+   
+    const PLACE_NO_IMAGES_SETTINGS = { extraUrlPatterns: [...MAP_URL_PATTERNS, ...IMAGE_REQUIRED_URL_PATTERNS] };
+    const PLACE_1_IMAGE_SETTING = { extraUrlPatterns: MAP_URL_PATTERNS };
+    // TODO: Image scrolling is currently buggy (it jumps up) with any request blocking
+    // but it should be fixable with enough fiddling
+    // Right now, we disable all optimizations for images which is unfortunate
+    const PLACE_MANY_IMAGES_SETTING = { urlPatterns: [] };
+
+    // We need some images that are blocked by default for scrolling places
+    const SEARCH_NORMAL_SETTING = {
+        urlPatterns: ['.svg', '.woff', '.pdf', '.zip'],
+        extraUrlPatterns: [...MAP_URL_PATTERNS, ...IMAGE_REQUIRED_URL_PATTERNS]
+    };
+    // Here we need the map 
+    // TODO: This might fine-tuned if we try different options long enough but not a priority since it is rare
+    const SEARCH_NO_SEARCHSTRING_SETTING = { urlPatterns: [] };
+    
+    /** @type {{extraUrlPatterns?: string[], urlPatterns?: string[]}} */
+    let blockRequestsOptions;
+    if (label === LABELS.PLACE) {
+        if (maxImages > 1) {
+            blockRequestsOptions = PLACE_MANY_IMAGES_SETTING;
+        } else if (maxImages === 1) {
+            blockRequestsOptions = PLACE_1_IMAGE_SETTING;
+        } else {
+            blockRequestsOptions = PLACE_NO_IMAGES_SETTINGS;
+        }
+    } else if (label === LABELS.SEARCH) {
+        if (allPlacesNoSearchAction) {
+            blockRequestsOptions = SEARCH_NO_SEARCHSTRING_SETTING;
+        } else {
+            blockRequestsOptions = SEARCH_NORMAL_SETTING;
+        }
+    }
+
+    // @ts-ignore
+    await blockRequests(page, blockRequestsOptions);
+}
+
+module.exports.abortRunIfReachedMaxPlaces = async ({ searchString, request, page, crawler }) => {
+    log.warning(`[SEARCH]: Finishing scraping because we reached maxCrawledPlaces `
+        // + `currently: ${maxCrawledPlacesTracker.enqueuedPerSearch[searchKey]}(for this search)/${maxCrawledPlacesTracker.enqueuedTotal}(total) `
+        + `--- ${searchString} - ${request.url}`);
+    // We need to wait a bit so the pages got processed and data pushed
+    await page.waitForTimeout(5000);
+    await crawler.autoscaledPool?.abort();
+}

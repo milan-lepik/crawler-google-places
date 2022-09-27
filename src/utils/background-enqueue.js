@@ -1,7 +1,7 @@
 const Apify = require('apify');
 
 const MaxCrawledPlacesTracker = require('../helper-classes/max-crawled-places');
-const { MAX_START_REQUESTS_SYNC, ASYNC_START_REQUESTS_INTERVAL_MS } = require('../consts')
+const { MAX_START_REQUESTS_SYNC, ASYNC_START_REQUESTS_INTERVAL_MS, LABELS } = require('../consts')
 
 const { log } = Apify.utils;
 
@@ -38,7 +38,7 @@ module.exports.setUpEnqueueingInBackground = async (startRequests, requestQueue,
  */
 const enqueueStartRequests = async (requests, requestQueue, maxCrawledPlacesTracker, enqueueingState) => {
     for (const request of requests) {
-        if (request.userData?.label === 'detail') {
+        if (request.userData?.label === LABELS.PLACE) {
             if (!maxCrawledPlacesTracker.setEnqueued()) {
                 log.warning(`Reached maxCrawledPlaces ${maxCrawledPlacesTracker.enqueuedTotal}, not enqueueing any more`);
                 break;

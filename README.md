@@ -1,33 +1,40 @@
+## What is Google Maps Scraper what does it do?
 
+This Google Maps scraper lets you get more and faster data from Google Places than the official [Google Places API](https://developers.google.com/places/web-service/search). Our unofficial Google Maps API enables you to extract all of the following data from Google Maps:
 
+🔗   Title, subtitle, category, place ID, and URL
 
-## Features
+📍   Address, location, plus code and exact coordinates
 
-This Google Maps crawler will enable you to get more and faster data from Google Places than the official  [Google Places API](https://developers.google.com/places/web-service/search).
+☎️   Phone and website, if available
 
-To understand how to configure the scraper and get ideas on how you can use the data you can extract,  [watch a short video tutorial](https://www.youtube.com/watch?v=J43AX9wu-NI)  on YouTube or follow our step-by-step guide on  [how to scrape Google Maps](https://blog.apify.com/step-by-step-guide-to-scraping-google-maps/).
+🏷   Menu and price, if available
 
-Our unofficial Google Maps API enables you to extract all of the following data from Google Maps:
+🔒   Temporarily or permanently closed status
 
--   Title, subtitle, category, place ID, and URL
--   Address, location, plus code and exact coordinates
--   Phone and website if available
--   Menu and price if available
--   Temporarily or permanently closed status
--   Popular times - histogram & live occupancy
--   Average rating (`totalScore`), review count, and review distribution
--   List of images (optional)
--   List of detailed characteristics (`additionalInfo`, optional)
--   Opening hours (optional)
--   People also search (optional)
+⌚️  Popular times - histogram & live occupancy
 
-The scraper also supports the scraping of all detailed information about reviews:
+⭐️   Average rating (`totalScore`), review count, and review distribution
 
--   Review text
--   Published date
--   Stars
--   Review ID & URL
--   Response from owner - text and published date
+🍔   List of images (optional)
+
+➕   List of detailed characteristics (`additionalInfo`, optional)
+
+🧑‍🍳   Opening hours (optional)
+
+🔍   People also search (optional)
+
+The scraper also supports the scraping of all **detailed information about reviews**:
+
+✅   Review text
+
+✅   Published date
+
+✅   Stars
+
+✅   Review ID & URL
+
+✅   Response from owner - text and published date
 
 Personal data extraction about reviewers has to be **explicitly** enabled in input (see  [Personal data section](https://apify.com/drobnikj/crawler-google-places#personal-data)):
 
@@ -36,235 +43,286 @@ Personal data extraction about reviewers has to be **explicitly** enabled in inp
 -   Reviewer number of reviews
 -   Is Local Guide
 
-The Google Maps Scraper also provides other very useful features:
+Google Maps Scraper also provides **other handy features**:
 
--   Geolocation - enables scraping the whole country, state, county, city, or postal code (integration with Nomatim Maps API)
--   Language & translation settings
--   Reviews sorting
--   Proxy configuration
--   Browser & scraping configuration
+🗺   Define search area - allows you to define the geographical area to scrape to a country, state, county, city, or postal code, thus speeding up the search (integration with Nomatim Maps API)
 
-## Advantages over Google Maps API
+🔍   Automatic zooming - ensures maximum results
 
-The official Google Places API (it's still called the old way) is an adequate option for many use cases, but this unofficial Google Maps API provides more cost-effective, comprehensive results, and also scrapes histograms for popular times, which aren't available in the official API. While you are no longer limited to a maximum number of requests per day with the Google Places API, there are still rate limits and quotas that apply. Our Google Maps API enforces no such rate limits or quotas.
+🌏   Language & translation settings
 
+🗂   Reviews sorting
 
-## How much will it cost?
-As a rule, getting results with Google Maps Scraper will not consume a lot of your platform credits. But this depends heavily on the complexity of your search. For more details about platform credits and usage, see the [Cost of usage tab](https://apify.com/drobnikj/crawler-google-places/cost-of-usage#features).
+🛡   Proxy configuration
 
-## Google Maps scraping tutorial
-
-For a simple explanation of how to scrape Google Maps, follow a step-by-step [tutorial on our blog](https://blog.apify.com/step-by-step-guide-to-scraping-google-maps/) or see our short [YouTube video](https://www.youtube.com/watch?v=J43AX9wu-NI).
-
-[![Apify - Google Maps](https://i.imgur.com/8FLt9W4.png)](https://www.youtube.com/watch?v=J43AX9wu-NI)
+💻   Browser & scraping configuration
 
 
-### Why scrape Google Maps?
--  **analyze reviews** for positive/negative sentiment, quality of service, and specific phrases.
-- create a potential **customer base**.
--   search, monitor and **analyze the competitors'** offers.
--   find where to **buy a specific product** and choose the best option out of the pool of results.
--   **analyze geospatial data** for scientific or engineering work.
-- find opportunities for **expanding your business** or organization and developing a working market strategy.
+## How does  Google Maps Scraper work?
 
-For more ideas on how to use the extracted data, check out our  [industries pages](https://apify.com/industries)  for concrete ways web scraping results are already being used across the projects and businesses of various scale and direction - in  [travel and logistics](https://apify.com/industries/travel-and-logistics), for instance.
+It works exactly as if you were searching through Google Maps and copying information from each page you find. It opens  [Google Maps website](https://www.google.com/maps/), goes to a specified location, then writes your search query into the search bar. Then it presses the *Next page* button until it reaches the final page or  `maxCrawledPlaces`. It enqueues all the places as separate pages and then copypastes all visible data into an organized document. To understand the process fully, just try it out in your browser - the scraper does exactly the same thing, only much faster.
 
-## Input 
+## How much will scraping Google Maps cost?
 
-When running the Google Maps Scraper, you need to configure what you want to scrape and how it should be scraped. This input is provided either as a JSON file or in the editor on the Apify platform. Most input fields have reasonable default values.
+Apify provides you with $5 free usage credits to use every month on the Apify Free plan, and you could get **up to 2,000 reviews from this Google Maps Scraper** for those credits. But the number of platform credits you use **depends on the complexity of your search**. 
+
+If you need to get more data regularly, you should grab an Apify subscription. We recommend our $49/month Personal plan - you can get **up to 20,000 Google Maps results every month** with the free $49 in monthly usage credits from that plan! For more details about usage credits, see this video guide on ▷ [how to choose the right subscription plan](https://www.youtube.com/watch?v=s_89WpOsKRI).
+
+For more details about Google Maps scraper usage, see the [Cost of usage tab](https://apify.com/drobnikj/crawler-google-places/cost-of-usage#features). 
+<div align="center"><a href="https://console.apify.com/actors/nwua9Gu5YrADL7ZDj?asrc=blog" target="_blank">
+<img width=20%" src="https://imgur.com/FS6hnof.png" /></a></div><br>   
+
+## What are the advantages over the Google Maps API?
+
+With the Google Maps API, you get $200 worth of credit usage every month free of charge. That means 28,500 maploads per month. However, the **Google Maps API caps your search results to 60**, regardless of the radius you specify. So, if you want to scrape data for bars in New York, for example, you'll get results for only 60 of the thousands of bars in the area. 
+
+**Google Maps Scraper imposes no rate limits or quotas** and provides more cost-effective, comprehensive results, and also scrapes histograms for popular times, which aren't available in the official API.
+
+
+## Is it legal to scrape Google Maps?
+
+Web scraping is legal if you are extracting publicly available data which is most data on Google Maps. However, you should respect boundaries such as personal data and intellectual property regulations. You should only scrape personal data if you have a legitimate reason to do so, and you should also factor in Google's [Terms of Use](https://policies.google.com/terms?hl=en).
+
+
+## How do I use Google Maps Scraper?
+
+To understand how to configure and run the scraper, follow our step-by-step guide on  [how to scrape Google Maps](https://blog.apify.com/step-by-step-guide-to-scraping-google-maps/) or [watch a short video tutorial](https://www.youtube.com/watch?v=Wzfo3qSSbtU)  &#9655; on YouTube. 
+
+[![Apify - G Maps](https://img.youtube.com/vi/J43AX9wu-NI/0.jpg)](https://www.youtube.com/watch?v=J43AX9wu-NI)
+
+## What can I use the extracted data from Google Maps for?
+
+You can use the extracted data to:
+
+👉🏽 create a potential customer base and prospection files
+
+👉🏽 find new clients
+
+👉🏽 generate leads
+
+👉🏽 search and analyze businesses similar to yours
+
+👉🏽 monitor brand sentiment and service quality, and identify fake reviews
+
+👉🏽 find where to buy products
+
+👉🏽 analyze geo-spatial data for scientific or engineering work
+
+👉🏽 develop a working market strategy
+
+For more ideas on how to use the extracted data, check out our [industries pages](https://apify.com/industries)  for concrete ways web scraping results are already being used across many projects and businesses of all types and sizes - in [travel and logistics](https://apify.com/industries/travel-and-logistics), for instance.
+
+
+## Want more options?
+
+### Google Maps Reviews Scraper ⭐️
+
+If you only want to scrape reviews, this targeted data scraper is a great option. [Google Maps Reviews Scraper](https://apify.com/zenisjan/google-maps-reviews-scraper) extracts all reviews for a single place on Google Maps. 
+
+All you need to do is enter the URL of the location you want to scrape, and you'll get a dataset of all reviews, which you can download for business analysis and market research.
+
+### Easy Google Maps Scraper 🌎
+
+If you want an easier but more limited Google Maps scraping tool, this is a very handy scraper if you're only looking to extract, say, 40 results rather than 400. [Google Maps Reviews Scraper](https://apify.com/zenisjan/google-maps-reviews-scraper) is set up and configured to make your scraping tasks super quick and easy.
+
+### Google Places API Radar Search📍
+
+To use this tool, you need to acquire your own Google API key, as you would use the official Google API. So, why use [Google Places API Radar Search](https://apify.com/alexey/google-maps-radar-search) instead of the API?
+
+Nearby search with the official API returns only 60 results. Google Places API Radar Search overrides this limit and gets all places in a specified location.
+
+### Gas Station Scraper ⛽️
+
+Use [Gas Station Scraper](https://apify.com/natasha.lekh/gas-stations-scraper) to find the lowest gas prices and timestamps of price updates from gas stations in your area.
+       
+
+## Input
 
 ### Input example
+The Google Maps Scraper has the following input options:
 
+![Apify  -  G Maps  Scraper  input](https://i.imgur.com/AxyIJG2.png)
+
+Or here's its equivalent in JSON:
 ```json
 {
-  "searchStringsArray": ["pubs"],
-  "city": "Prague"
+  "maxCrawledPlaces": 10,
+  "language": "en",
+  "exportPlaceUrls": false,
+  "includeHistogram": false,
+  "includeOpeningHours": false,
+  "includePeopleAlsoSearch": false,
+  "additionalInfo": false,
+  "maxImages": 10,
+  "maxReviews": 0,
+  "scrapeReviewerName": true,
+  "scrapeReviewerId": true,
+  "scrapeReviewerUrl": true,
+  "scrapeReviewId": true,
+  "scrapeReviewUrl": true,
+  "scrapeResponseFromOwnerText": true,
+  "proxyConfig": {
+    "useApifyProxy": true
+  },
+  "maxCrawledPlacesPerSearch": 10,
+  "searchStringsArray": [
+    "pet shelter in Prague"
+  ],
+  "oneReviewPerRow": false,
+  "reviewsSort": "newest",
+  "reviewsTranslation": "originalAndTranslated",
+  "allPlacesNoSearchAction": ""
 }
 ```
-
-For detailed descriptions and examples for all input fields, please visit the dedicated  [Input page](https://apify.com/drobnikj/crawler-google-places/input-schema).
+<div align="center"><a href="https://console.apify.com/actors/nwua9Gu5YrADL7ZDj?asrc=blog" target="_blank">
+<img width=20%" src="https://imgur.com/FS6hnof.png" /></a></div><br> 
 
 ## Output
 
-The scraped data is stored in the dataset of each run. The data can be viewed or downloaded in many popular formats, such as *JSON, CSV, Excel, XML, RSS, and HTML*.
+The output from Google Maps Scraper is stored in a dataset. After the run is finished, you can download the dataset in various data formats (JSON, CSV, XML, RSS, HTML Table).
 
 ### Output example
-The result for scraping a single Google Place looks like this (*shortened to only the first two pubs for viewing convenience*):
 
-```json
-{
-  "title": "Fat Cat Beerhouse & Restaurant",
-  "subTitle": null,
-  "price": "$$",
-  "menu": "fat-cat.cz",
-  "categoryName": "Restaurant",
-  "address": "Karlova 44, 110 00 Staré Město, Czechia",
-  "locatedIn": null,
-  "neighborhood": "Karlova 44",
-  "street": "Karlova 44",
-  "city": "Old Town",
-  "postalCode": "110 00",
-  "state": null,
-  "countryCode": "CZ",
-  "plusCode": "3CP9+CG Prague, Czechia",
-  "website": "https://www.fat-cat.cz/",
-  "phone": "+420 735 751 751",
-  "temporarilyClosed": false,
-  "permanentlyClosed": false,
-  "totalScore": 4.4,
-  "isAdvertisement": false,
-  "rank": 47,
-  "placeId": "ChIJxT1C1u6UC0cRjNBm7b6wDjM",
-  "categories": [
-    "Restaurant"
-  ],
-  "cid": "3679072279681486988",
-  "url": "https://www.google.com/maps/place/Fat+Cat+Beerhouse+%26+Restaurant/@50.0860664,14.416575,17z/data=!3m1!4b1!4m5!3m4!1s0x470b94eed6423dc5:0x330eb0beed66d08c!8m2!3d50.0860664!4d14.4187637?hl=en",
-  "searchPageUrl": "https://www.google.com/maps/search/takeout/@50.0852853,14.4123976,1225m/data=!3m1!1e3!4m4!2m3!5m1!15shas_takeout!6e5!5m1!1e4?hl=en",
-  "searchString": null,
-  "location": {
-    "lat": 50.0860664,
-    "lng": 14.4187637
-  },
-  "scrapedAt": "2022-01-20T16:28:59.701Z",
-  "reviewsCount": 3609,
-  "reviewsDistribution": {
-    "oneStar": 94,
-    "twoStar": 68,
-    "threeStar": 315,
-    "fourStar": 829,
-    "fiveStar": 2303
-  },
-  "imageUrls": [
-    "https://lh5.googleusercontent.com/p/AF1QipPkgSf8TR98sGzI2RnJKvRyzfoyYkTrRUugYWKj=w1920-h1080-k-no"
-  ],
-  "reviews": [],
-  "orderBy": [
-    {
-      "name": "restu.cz",
-      "url": "http://restu.cz/fat-cat-praha/"
-    }
-  ]
-},
-{
-  "title": "At The Old Lady",
-  "subTitle": null,
-  "price": "$$",
+![Apify  -  G Maps  Scraper  input](https://i.imgur.com/RaeEvdb.png)
+
+Or here's its equivalent in JSON:
+``` json 
+[{
+  "title": "Pet Heroes shop",
+  "subTitle": "Pet Heroes - pomáháme zvířatům",
+  "price": null,
   "menu": null,
-  "categoryName": "Restaurant",
-  "address": "9, Michalská 441, 110 00 Hlavní město, Czechia",
+  "categoryName": "Non-governmental organization",
+  "address": "V Horkách 4, 140 00 Praha 4-Nusle, Czechia",
   "locatedIn": null,
-  "neighborhood": "9, Michalská 441",
-  "street": "9, Michalská 441",
-  "city": "Hlavní město",
-  "postalCode": "110 00",
+  "neighborhood": "V Horkách 4",
+  "street": "V Horkách 4",
+  "city": "Prague 4-Nusle",
+  "postalCode": "140 00",
   "state": null,
   "countryCode": "CZ",
-  "plusCode": "3CM9+XX Prague, Czechia",
-  "website": "http://www.hotelustarepani.cz/",
-  "phone": "+420 589 127 964",
+  "plusCode": "3C6W+MR Prague 4, Czechia",
+  "website": "http://www.petheroes.cz/",
+  "phone": "+420 725 723 947",
   "temporarilyClosed": false,
-  "permanentlyClosed": false,
-  "totalScore": 4.5,
-  "isAdvertisement": false,
-  "rank": 64,
-  "placeId": "ChIJORAjle6UC0cR697RocpZFnU",
-  "categories": [
-    "Restaurant"
-  ],
-  "cid": "8437029678758354667",
-  "url": "https://www.google.com/maps/place/At+The+Old+Lady/@50.0849313,14.4176865,17z/data=!3m1!4b1!4m5!3m4!1s0x470b94ee95231039:0x751659caa1d1deeb!8m2!3d50.0849313!4d14.4198755?hl=en",
-  "searchPageUrl": "https://www.google.com/maps/search/takeout/@50.0852853,14.4123976,1225m/data=!3m1!1e3!4m4!2m3!5m1!15shas_takeout!6e5!5m1!1e4?hl=en",
-  "searchString": null,
   "location": {
-    "lat": 50.0849313,
-    "lng": 14.4198755
+    "lat": 50.0616625,
+    "lng": 14.4470878
   },
-  "scrapedAt": "2022-01-20T16:29:08.907Z",
-  "reviewsCount": 39,
+  "permanentlyClosed": false,
+  "totalScore": 4.8,
+  "isAdvertisement": false,
+  "rank": 10,
+  "placeId": "ChIJJXTKRpmVC0cREdfm_mnO1e8",
+  "categories": [
+    "Non-governmental organization"
+  ],
+  "cid": "17281946099747575569",
+  "url": "https://www.google.com/maps/place/Pet+Heroes+shop/@50.0616625,14.4470878,17z/data=!3m1!4b1!4m5!3m4!1s0x470b959946ca7425:0xefd5ce69fee6d711!8m2!3d50.0616625!4d14.4470878?hl=en",
+  "searchPageUrl": "https://www.google.com/maps/search/pet+shelter+in+Prague/@37.6,-95.665,4z?hl=en",
+  "searchString": "pet shelter in Prague",
+  "scrapedAt": "2022-07-28T12:41:14.352Z",
+  "reviewsCount": 17,
   "reviewsDistribution": {
-    "oneStar": 3,
-    "twoStar": 0,
-    "threeStar": 1,
-    "fourStar": 5,
-    "fiveStar": 30
+    "oneStar": 0,
+    "twoStar": 1,
+    "threeStar": 0,
+    "fourStar": 0,
+    "fiveStar": 16
   },
   "imageUrls": [
-    "https://lh5.googleusercontent.com/proxy/DqAYJYgsu9aQCdbKvnrdwONTW60qn_Dyhz2re-pmtj7xf2MN8bfU2qVc70OUyqmaiUZ54aBqXuhNeX8LO4F0RCiagkT2M-kjhCLa-EP07Nb9PR5LtFdO-hJ_JLk8PXsKEMMM9chiedjk2_achCni-V4e8fGj060=w1920-h1080-k-no"
+    "https://lh5.googleusercontent.com/p/AF1QipO5KXrDiwPABpf329swB-ZqgNNbwSXt2EXdcb1C=w1920-h1080-k-no",
+    "https://lh5.googleusercontent.com/p/AF1QipMsy8BCwkMD8WJCNr4Qce98Tt_lLN_l1Tt1NhvI=w1920-h1080-k-no",
+    "https://lh5.googleusercontent.com/p/AF1QipPZbx-sQF7GlQ3iHvPZ7vPJmwSg3GmTjZwjcsAJ=w1920-h1080-k-no",
+    "https://lh5.googleusercontent.com/p/AF1QipO_S2d-hodZ7P1Ua_OUFNr7FOWIm02GeBAmnK8f=w1920-h1080-k-no",
+    "https://lh5.googleusercontent.com/p/AF1QipOte-mza93xiqM60Hbm9wQaExi7J6gyLOo53K2r=w1920-h1080-k-no",
+    "https://lh5.googleusercontent.com/p/AF1QipOUpt1d4TDfdXK5owjTANfYQfLG1dvAJRnwI8kg=w1920-h1080-k-no"
   ],
   "reviews": [],
   "orderBy": []
-}
+},
+{
+  "title": "Sdružení na ochranu zvířat v krajní nouzi",
+  "subTitle": null,
+  "price": null,
+  "menu": null,
+  "categoryName": "Pet adoption service",
+  "address": "Na Pláni 2006, 150 00 Praha 5, Czechia",
+  "locatedIn": null,
+  "neighborhood": "Na Pláni 2006",
+  "street": "Na Pláni 2006",
+  "city": "Prague 5",
+  "postalCode": "150 00",
+  "state": null,
+  "countryCode": "CZ",
+  "plusCode": "397W+49 Prague 5, Czechia",
+  "website": "https://www.kocici-utulek.cz/",
+  "phone": "+420 603 225 948",
+  "temporarilyClosed": false,
+  "location": {
+    "lat": 50.062872,
+    "lng": 14.3958755
+  },
+  "permanentlyClosed": false,
+  "totalScore": 4.3,
+  "isAdvertisement": false,
+  "rank": 9,
+  "placeId": "ChIJuxlGAU6UC0cRI_jkTCUIboA",
+  "categories": [
+    "Pet adoption service"
+  ],
+  "cid": "9254343240589834275",
+  "url": "https://www.google.com/maps/place/Sdru%C5%BEen%C3%AD+na+ochranu+zv%C3%AD%C5%99at+v+krajn%C3%AD+nouzi/@50.062872,14.3958755,17z/data=!3m1!4b1!4m5!3m4!1s0x470b944e014619bb:0x806e08254ce4f823!8m2!3d50.0628787!4d14.3958708?hl=en",
+  "searchPageUrl": "https://www.google.com/maps/search/pet+shelter+in+Prague/@37.6,-95.665,4z?hl=en",
+  "searchString": "pet shelter in Prague",
+  "scrapedAt": "2022-07-28T12:42:10.969Z",
+  "reviewsCount": 40,
+  "reviewsDistribution": {
+    "oneStar": 6,
+    "twoStar": 0,
+    "threeStar": 1,
+    "fourStar": 2,
+    "fiveStar": 31
+  },
+  "imageUrls": [
+    "https://lh5.googleusercontent.com/p/AF1QipOeEWgXD8Jjmj3DpIa7U9VeJ3E83xaRpefxbYZh=w1920-h1080-k-no",
+    "https://lh5.googleusercontent.com/p/AF1QipN2XNEQQrjtpMIHLe0WlJHYWd4nhniifUiy9BYq=w1920-h1080-k-no",
+    "https://lh5.googleusercontent.com/p/AF1QipOShH8UZgA-gtJlc83n2uBLhgkd5HRacPIOx_V6=w1920-h1080-k-no",
+    "https://lh5.googleusercontent.com/p/AF1QipPrcwuF0i7y32PUwX-ff-jdkRovD7XQ6fmBWHmr=w1920-h1080-k-no"
+  ],
+  "reviews": [],
+  "orderBy": []
+},
 ```
 
-### Adjusting output format
+## Tips and tricks: define search area
 
-The Apify platform allows you to choose from many dataset formats, but also to restructure the output itself.
+### Country, state, county, city, and postal code vs. latitude and longitude
 
-#### One review per row
+You can speed up the search and consume fewer platform credits by reducing the radius of the geographical area to scrape. You can use any combination of the geolocation parameters: `country`, `state`, `county`,  `city` & `postalCode`.
 
-Normally, each result item contains data about a single place. Each item is displayed as one row in tabulated formats. There is a lot of data about each place, so the tabulated formats get very messy and hard to analyze. Fortunately, there is a solution.
-
-You can tick on the `oneReviewPerRow` input option to get one review per row as output. If you already have a dataset and need to adjust its format, read further.
-
-For example, if you need to analyze reviews, you can configure the download to only contain the data you need and adjust the row/column format. Here's how to get a list of reviews with a place title one review per row: copy the download link in the format you need, paste it to a different tab, and add  `&unwind=reviews&fields=reviews,title`  to the end of the link URL, and then press Enter to download it.  `unwind=reviews`  means that each review will be on its own row.  `fields=reviews,title`  means that only reviews and title will be downloaded, skipping the other data. Otherwise, the output would be very big, but it's also no problem if you don't use  `fields`  at all.
-
-The whole download link for, e.g. CSV would look like this (with dataset ID):[https://api.apify.com/v2/datasets/DATASET_ID/items?clean=true&format=csv&attachment=true&unwind=reviews&fields=reviews,title](https://api.apify.com/v2/datasets/dataset_id/items?clean=true&format=csv&attachment=true&unwind=reviews&fields=reviews,title)
-
-#### Gas prices
-
-If business place is gas station then gas prices parsed when available. Normally to see gas prices in browser search must include "Gas" category, for example https://www.google.com/maps/search/Gas/@33.4260879,-87.6703234,8z/data=!3m1!4b1?hl=en
-However actor will get prices for any gas station found by any other search or specified by direct URL.
-Please note that prices currently expected only from USA and not every gas station provides prices, if available you will get output as follows:
-```json
-"gasPrices": [
-  {
-    "priceTag": "$4.90",
-    "updatedAt": "2022-05-13T03:47:16.000Z",
-    "unit": "gallon",
-    "currency": "USD",
-    "price": 4.9,
-    "gasType": "Premium"
-  }
-]
-```
-
-## Usage on Apify platform and locally
-
-If you want to run the actor on the  [Apify platform](https://apify.com/), you may need to use some proxy IP addresses. You can use your free Apify Proxy trial or you can subscribe to one of  [Apify's subscription plans](https://apify.com/pricing).
-
-### Running locally or on a different platform
-
-You can easily run this scraper locally or on your favorite platform. It can run as a simple Node.js process or inside a Docker container.
-
-## How the search works
-
-It works exactly as though you were searching Google Maps on your computer. It opens  [https://www.google.com/maps/](https://www.google.com/maps/)  and relocates to the specified location, then writes the search to the input. Then it presses the next page button until it reaches the final page or  `maxCrawledPlaces`. It enqueues all the places as separate pages and then scrapes them. If you are unsure about anything, just try this process in your browser - the scraper does exactly the same thing.
-
-### Using country, state, county, city, and postal code parameters
-
-You can use any combination of the geolocation parameters:  `country`,  `state`,  `county`,  `city`  &  `postalCode`. The scraper uses  [nominatim maps](https://nominatim.org/)  to find a location polygon and then splits that into multiple searches that cover the whole area to ensure maximum scraped places.
+Keep in mind that the first five fields and the coordinate options are mutually exclusive.
 
 ### Automatic zooming
 
-The scraper automatically zooms the map to ensure maximum results are extracted. Higher  `zoom`  ensures more (less known) places are scraped but takes longer to traverse by the scraper. Logically, the smaller the area is, the higher zoom should be used. Currently, the default  `zoom`  values are:
-- no geo or  `country`  or  `state`  -> 12 
- - `county`  -> 14  
- - `city`  -> 15  
--  `postalCode`  -> 16
+The scraper automatically zooms the map to ensure maximum results are extracted. Higher  zoom ensures more (less known) places are scraped. Logically, the smaller the area is, the higher zoom should be used. Currently, the default `zoom` values are:
 
-If you need even more results or faster run, you can override these values with the  `zoom`  input parameter.  `zoom`  can be any number between 1 (whole globe) and 21 (few houses).
+- no geolocation -> 12
+- `country` or `state` -> 12
+- `county` -> 14 
+-  `city` -> 15
+- `postalCode` -> 16
 
-## Custom Geolocation
+If you need even more results or a faster run, you can override these values with the `zoom` input parameter. `zoom` can be any number between 1 (whole globe) and 21 (few houses).
 
-The easiest way to use our Google Maps Scraper is to provide  `country`,  `state`,  `county`,  `city`  or  `postalCode`  input parameters. But in some rare cases, your location might not be found or you may want to customize it. In that case, you can use  `customGeolocation`  for the creation of start URLs. As example, see the  `geojson`  field in  [Nominatim Api](https://nominatim.openstreetmap.org/)  (see  [here for the example of Cambridge in Great Britain](https://nominatim.openstreetmap.org/search?country=united%20kingdom&state=&city=cambridge&postalcode=&format=json&polygon_geojson=1&limit=1&polygon_threshold=0.005))
+### Custom search area
 
-There are several types of geolocation geometry that you can use. All follow official  [Geo Json RFC](https://datatracker.ietf.org/doc/html/rfc7946#section-3.1.2).
+If your location can’t be found or you want to customize it, you can use the custom search area function for the creation of start URLs. As an example, see the `geojson field` in [Nominatim Api](https://nominatim.openstreetmap.org/) (see [here for the example of Cambridge in Great Britain](https://nominatim.openstreetmap.org/search?country=united%20kingdom&state=&city=cambridge&postalcode=&format=json&polygon_geojson=1&limit=1&polygon_threshold=0.005)).
+There are several types of search area geometry that you can use. All follow official [Geo Json RFC](https://datatracker.ietf.org/doc/html/rfc7946#section-3.1.2).
 
-### Polygon
+**Polygon**
 
-The most common type is polygon which is a set of points that define the location.  **The first and last coordinate must be equal (to close the polygon)!!!**  `customGeolocation`  should have this format:
-
+The most common type is polygon, which is a set of points that define the location.  The first and last coordinate must be equal **(to close the polygon)**. `customGeolocation` should have this format:
 ```json
 {
     "type": "Polygon",
@@ -297,12 +355,39 @@ The most common type is polygon which is a set of points that define the locatio
     ]
 }
 
-```
-
-### MultiPolygon
+### [](https://github.com/drobnikj/crawler-google-places/tree/0704f9bbd6eb8bc935ade339b16f4e59cf8c0a64#multipolygon)MultiPolygon
 
 Multi polygon can combine more polygons that are not continuous together.
 
+{
+    "type": "MultiPolygon",
+    "coordinates": [
+        [ // first polygon
+            [
+                [
+                    12.0905752, // Longitude
+                    50.2524063  // Latitude
+                ],
+                [
+                    12.1269337,
+                    50.2324336
+                ],
+                // ...
+            ]
+        ],
+        [
+            // second polygon
+            // ...
+        ]
+    ]
+}
+```
+
+
+
+**MultiPolygon**
+
+MultiPolygon can combine more polygons that are not continuous together.
 ```json
 {
     "type": "MultiPolygon",
@@ -326,12 +411,11 @@ Multi polygon can combine more polygons that are not continuous together.
         ]
     ]
 }
-
 ```
 
-### Circle
-For a circle, we can use the `Point` type with our custom parameter `radiusKm`.
+**Circle**
 
+For a circle, we can use the `Point` type with our custom parameter `radiusKm`.
 ```json
 {
     "type": "Point",
@@ -339,18 +423,33 @@ For a circle, we can use the `Point` type with our custom parameter `radiusKm`.
     "radiusKm": 1
 }
 ```
+## Advanced configuration
 
-## Personal data
+### One review per row
 
-Reviews can contain personal data such as a name, profile image, and even a review ID that could be used to track down the reviewer. Personal data is protected by GDPR in the European Union and by other regulations around the world. You should not scrape personal data unless you have a legitimate reason to do so. If you're unsure whether your reason is legitimate, consult your lawyers. This scraper allows you to granularly select which personal data fields you want to extract from reviews and which not. You can read the basics of ethical web scraping in our blogpost on the  [legality of web scraping](https://blog.apify.com/is-web-scraping-legal/).
+Normally, each result item contains data about a single place. Each item is displayed as one row in tabulated formats. There is a lot of data about each place, so the tabulated formats get very messy and hard to analyze. Fortunately, there is a solution.
+
+**You can tick on the  `oneReviewPerRow`  input toggle to get one review per row as output.** If you already have a dataset and need to adjust its format, read further.
+
+For example, if you need to analyze reviews, you can configure the download to only contain the data you need and adjust the row/column format. Here's how to get a list of reviews with a place title one review per row: copy the download link in the format you need, paste it to a different tab, and add  `&unwind=reviews&fields=reviews,title`  to the end of the link URL, and then press Enter to download it.  `unwind=reviews`  means that each review will be on its own row.  `fields=reviews,title`  means that only reviews and title will be downloaded, skipping the other data. Otherwise, the output would be very big, but it's also no problem if you don't use  `fields`  at all.
+
+The whole download link for, e.g. CSV would look like this (with dataset ID):[https://api.apify.com/v2/datasets/DATASET_ID/items?clean=true&format=csv&attachment=true&unwind=reviews&fields=reviews,title](https://api.apify.com/v2/datasets/dataset_id/items?clean=true&format=csv&attachment=true&unwind=reviews&fields=reviews,title)
 
 
-## Changelog
+### Changelog
+This scraper is under active development. We are always implementing new features and fixing bugs. If you would like to see a new feature, please submit an issue on GitHub. Check  [CHANGELOG.md](https://github.com/drobnikj/crawler-google-places/blob/master/CHANGELOG.md) for a list of recent updates.
 
-This scraper is under active development. We are always implementing new features and fixing bugs. If you would like to see a new feature, please submit an issue on GitHub. Check  [CHANGELOG.md](https://github.com/drobnikj/crawler-google-places/blob/master/CHANGELOG.md)  for a list of recent updates.
+## Resources on how to scrape Google Maps
 
-## Contributions
 
-We're always pleased to see issues or pull requests created by the community.
+>- [Step-by-step guide](https://blog.apify.com/step-by-step-guide-to-scraping-google-maps/) on how to use Google Maps Scraper. 
+>- [Video tutorial ▷](https://www.youtube.com/watch?v=J43AX9wu-NI) on how to use Google Maps Scraper. 
+>- [Input tab](https://apify.com/drobnikj/crawler-google-places/input-schema) with all the technical parameters of this scraper.
+>- [Is web scraping legal?](https://blog.apify.com/is-web-scraping-legal/) - your extended reference to ethical scraping.
+>- [Platform pricing page](https://apify.com/pricing/actors) with pricing specifications.  
+>- [Video guide ▷](https://www.youtube.com/watch?v=s_89WpOsKRI) on how to choose the right subscription plan.
+>- [CHANGELOG.md](https://github.com/drobnikj/crawler-google-places/blob/master/CHANGELOG.md) with a list of recent updates.
 
-Special thanks to:  [mattiashtd](https://github.com/mattiashtd)  [zzbazza](https://github.com/zzbazza)
+
+<div align="center"><a href="https://console.apify.com/actors/nwua9Gu5YrADL7ZDj?asrc=blog" target="_blank">
+<img width=20%" src="https://imgur.com/FS6hnof.png" /></a></div><br>    

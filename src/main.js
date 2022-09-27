@@ -14,6 +14,7 @@ const { createStartRequestsWithWalker } = require('./utils/walker');
 const { makeInputBackwardsCompatible, validateInput, getValidStartRequests, adjustInput } = require('./utils/input-validation');
 const { parseRequestsFromStartUrls } = require('./utils/misc-utils');
 const { setUpEnqueueingInBackground } = require('./utils/background-enqueue');
+const { LABELS } = require('./consts');
 
 const { log } = Apify.utils;
 
@@ -29,11 +30,11 @@ Apify.main(async () => {
 
     const {
         // Search and Start URLs
-        startUrls, searchStringsArray = [], allPlacesNoSearchAction = '',
+        startUrls = [], searchStringsArray = [], allPlacesNoSearchAction = '',
         // Geolocation (country is deprecated but we will leave for a long time)
         lat, lng, country, countryCode, state, county, city, postalCode, zoom, customGeolocation,
         // browser and request options
-        pageLoadTimeoutSec = 60, useChrome = false, maxConcurrency, maxPagesPerBrowser = 1, maxPageRetries = 6,
+        pageLoadTimeoutSec = 60, useChrome = false, maxConcurrency, maxPagesPerBrowser = 10, maxPageRetries = 6,
         // Misc
         proxyConfig, debug = false, language = 'en', headless = true,
         // walker is undocumented feature added by jakubdrobnik, we need to test it and document it
@@ -41,8 +42,10 @@ Apify.main(async () => {
 
         // Scraping options
         includeHistogram = false, includeOpeningHours = false, includePeopleAlsoSearch = false,
-        maxReviews = 0, maxImages = 1, exportPlaceUrls = false, additionalInfo = false,
-        maxCrawledPlaces = 99999999, maxCrawledPlacesPerSearch = maxCrawledPlaces,
+        maxReviews = 0, maxImages = 0, exportPlaceUrls = false, additionalInfo = false,
+
+        maxCrawledPlacesPerSearch = 9999999,
+
         maxAutomaticZoomOut, reviewsTranslation = 'originalAndTranslated', oneReviewPerRow = false,
         // For some rare places, Google doesn't show all reviews unless in newest sorting
         reviewsSort = 'newest', reviewsStartDate,
@@ -71,6 +74,8 @@ Apify.main(async () => {
     const placesCache = new PlacesCache({ cachePlaces, cacheKey, useCachedPlaces });
     await placesCache.initialize();
 
+    // This was an input in the past
+    const maxCrawledPlaces = (searchStringsArray.length || startUrls.length)  * maxCrawledPlacesPerSearch;
     const maxCrawledPlacesTracker = new MaxCrawledPlacesTracker(maxCrawledPlaces, maxCrawledPlacesPerSearch);
     await maxCrawledPlacesTracker.initialize(Apify.events);
 
@@ -91,7 +96,7 @@ Apify.main(async () => {
     let geolocation;
     let startUrlSearches;
     // We crate geolocation only for search. not for Start URLs
-    if (!Array.isArray(startUrls) || startUrls.length === 0) {
+    if (startUrls.length === 0) {
         // This call is async because it persists geolocation into KV
         ({ startUrlSearches, geolocation } = await prepareSearchUrlsAndGeo({
             lat,
@@ -118,7 +123,7 @@ Apify.main(async () => {
 
     if (startRequests.length === 0) {
         // Start URLs have higher preference than search
-        if (Array.isArray(startUrls) && startUrls.length > 0) {
+        if (startUrls.length > 0) {
             if (searchStringsArray?.length) {
                 log.warning('\n\n------\nUsing Start URLs disables search. You can use either search or Start URLs.\n------\n');
             }
@@ -151,16 +156,18 @@ Apify.main(async () => {
                     startRequests.push({
                         url: `https://www.google.com/maps/search/?api=1&query=${cleanSearch}&query_place_id=${placeId}`,
                         uniqueKey: placeId,
-                        userData: { label: 'detail', searchString },
+                        userData: { label: LABELS.PLACE, searchString },
                     });
                 } else if (startUrlSearches) {
                     // For each search, we use the geolocated URLs
                     for (const startUrlSearch of startUrlSearches) {
-                        const urlWithSearchString = `${startUrlSearch}/${searchString}`;
+                        const urlWithSearchString = searchString.startsWith('all_places_no_search')
+                            ? startUrlSearch
+                            : `${startUrlSearch}/${searchString}`;
                         startRequests.push({
                             url: urlWithSearchString,
                             uniqueKey: urlWithSearchString,
-                            userData: { label: 'startUrl', searchString },
+                            userData: { label: LABELS.SEARCH, searchString },
                         });
                     }
                 }
@@ -172,7 +179,7 @@ Apify.main(async () => {
                 startRequests.push({
                     url: `https://www.google.com/maps/search/?api=1&query=${searchString}&query_place_id=${placeId}`,
                     uniqueKey: placeId,
-                    userData: { label: 'detail', searchString, rank: null },
+                    userData: { label: LABELS.PLACE, searchString, rank: null },
                 });
             }
         }

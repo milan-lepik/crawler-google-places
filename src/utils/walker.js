@@ -1,4 +1,5 @@
 const Apify = require('apify');
+const { LABELS } = require('../consts');
 
 const typedefs = require('../typedefs'); // eslint-disable-line no-unused-vars
 
@@ -25,7 +26,7 @@ exports.createStartRequestsWithWalker = ({ walker, searchString }) => {
         for (let walkerLat = northeast.lat; walkerLat >= southwest.lat; walkerLat -= step) {
             generatedRequests.push({
                 url: `https://www.google.com/maps/@${walkerLat},${walkerLng},${zoom}z/search`,
-                userData: { label: 'startUrl', searchString },
+                userData: { label: LABELS.SEARCH, searchString },
             });
         }
     }

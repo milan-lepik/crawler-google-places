@@ -4,7 +4,10 @@ const Puppeteer = require('puppeteer'); // eslint-disable-line
 
 const { log, sleep } = Apify.utils;
 
-const { navigateBack, scrollTo } = require('../utils/misc-utils');
+const { navigateBack } = require('../utils/misc-utils');
+
+// We need to be careful that it works only for images of the images scrolling page, not on main place page
+const IMAGES_SELECTOR = 'a[data-photo-index]';
 
 /** @param {string[]} imageUrls */
 const enlargeImageUrls = (imageUrls) => {
@@ -61,24 +64,18 @@ module.exports.extractImages = async ({ page, maxImages, targetReviewsCount, pla
     if (maxImages > 1) {
         await sleep(2000);
         await mainImage?.click();
+        await page.waitForSelector(IMAGES_SELECTOR);
+        await sleep(500);
         let lastImage = null;
-        let pageBottom = 10000;
         let imageUrls = [];
 
         log.info(`[PLACE]: Infinite scroll for images started, url: ${placeUrl}`);
 
         for (;;) {
-            // TODO: Debug infiniteScroll properly, it can get stuck in there sometimes, for now just adding a race
-            await Promise.race([
-
-                // infiniteScroll(page, pageBottom, '.section-scrollbox', 1),
-                scrollTo(page, '.section-scrollbox', pageBottom),
-                Apify.utils.sleep(20000),
-            ]);
-            imageUrls = await page.evaluate(() => {
+            imageUrls = await page.evaluate((IMAGES_SELECTOR) => {
                 /** @type {string[]} */
                 const urls = [];
-                $('[data-photo-index]').each((_i, el) => {
+                $(IMAGES_SELECTOR).each((_i, el) => {
                     // @ts-ignore
                     const urlMatch = $(el).find('div').eq(0).attr('style').match(/url\("(.*)"\)/);
                     if (!urlMatch) return;
@@ -87,15 +84,22 @@ module.exports.extractImages = async ({ page, maxImages, targetReviewsCount, pla
                     urls.push(imageUrl);
                 });
                 return urls;
-            });
+            }, IMAGES_SELECTOR);
             if (imageUrls.length >= maxImages || lastImage === imageUrls[imageUrls.length - 1]) {
                 log.info(`[PLACE]: Infinite scroll for images finished, url: ${placeUrl}`);
                 break;
             }
             log.info(`[PLACE]: Infinite scroll continuing for images, currently ${imageUrls.length}, url: ${placeUrl}`);
             lastImage = imageUrls[imageUrls.length - 1];
-            pageBottom += 6000;
-            await sleep(500);
+            
+            // We need to have mouse in the left scrolling panel
+            await page.mouse.move(30, 400);
+            await sleep(100);
+            // scroll down the panel
+            await page.mouse.wheel({ deltaY: 20000 });
+
+            // We wait between 0.5 and 1 sec to simulate real scrolling
+            await sleep(500 + Math.ceil(500 * Math.random()))
         }
         resultImageUrls = imageUrls.slice(0, maxImages);
         // If no reviews are needed, we don't have to hit the back button

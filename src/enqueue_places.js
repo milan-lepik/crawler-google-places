@@ -9,10 +9,10 @@ const PlacesCache = require('./helper-classes/places_cache'); // eslint-disable-
 const MaxCrawledPlacesTracker = require('./helper-classes/max-crawled-places'); // eslint-disable-line no-unused-vars
 const ExportUrlsDeduper = require('./helper-classes/export-urls-deduper'); // eslint-disable-line no-unused-vars
 
-const { log } = Apify.utils;
-const { MAX_PLACES_PER_PAGE, PLACE_TITLE_SEL, NO_RESULT_XPATH } = require('./consts');
-const { parseZoomFromUrl, moveMouseThroughPage, getScreenshotPinsFromExternalActor } = require('./utils/misc-utils');
-const { searchInputBoxFlow } = require('./utils/search-page');
+const { log, sleep } = Apify.utils;
+const { MAX_PLACES_PER_PAGE, PLACE_TITLE_SEL, NO_RESULT_XPATH, LABELS } = require('./consts');
+const { parseZoomFromUrl, moveMouseThroughPage, getScreenshotPinsFromExternalActor, waiter, abortRunIfReachedMaxPlaces } = require('./utils/misc-utils');
+const { searchInputBoxFlow, getPlacesCountInUI } = require('./utils/search-page');
 const { parseSearchPlacesResponseBody } = require('./place-extractors/general');
 const { checkInPolygon } = require('./utils/polygon');
 
@@ -94,26 +94,28 @@ const enqueuePlacesFromResponse = (options) => {
                     continue;
                 }
                 if (exportPlaceUrls) {
+                    // We must not pass a searchString here because it aborts the whole run
+                    // We have to run this code before and after the push because this loop iteration
+                    // can be the first or the last one
                     if (!maxCrawledPlacesTracker.canScrapeMore()) {
+                        await abortRunIfReachedMaxPlaces({ searchString, request, page, crawler });
                         break;
                     }
 
+                    if (!maxCrawledPlacesTracker.canScrapeMore(searchString)) {
+                        break;
+                    }
                     const wasAlreadyPushed = exportUrlsDeduper?.testDuplicateAndAdd(placePaginationData.placeId);
-                    let shouldScrapeMore = true;
                     if (!wasAlreadyPushed) {
-                        shouldScrapeMore = maxCrawledPlacesTracker.setScraped();
+                        
+                        maxCrawledPlacesTracker.setScraped();
                         pushed++;
                         await Apify.pushData({
                             url: `https://www.google.com/maps/search/?api=1&query=${searchString}&query_place_id=${placePaginationData.placeId}`,
                         });
                     }
-                    if (!shouldScrapeMore) {
-                        log.warning(`[SEARCH]: Finishing scraping because we reached maxCrawledPlaces `
-                            // + `currently: ${maxCrawledPlacesTracker.enqueuedPerSearch[searchKey]}(for this search)/${maxCrawledPlacesTracker.enqueuedTotal}(total) `
-                            + `--- ${searchString} - ${request.url}`);
-                        // We need to wait a bit so the pages got processed and data pushed
-                        await page.waitForTimeout(5000);
-                        await crawler.autoscaledPool?.abort();
+                    if (!maxCrawledPlacesTracker.canScrapeMore()) {
+                        await abortRunIfReachedMaxPlaces({ searchString, request, page, crawler });
                         break;
                     }
                 } else {
@@ -129,7 +131,7 @@ const enqueuePlacesFromResponse = (options) => {
                             url: placeUrl,
                             uniqueKey: placePaginationData.placeId,
                             userData: {
-                                label: 'detail',
+                                label: LABELS.PLACE,
                                 searchString,
                                 rank,
                                 searchPageUrl,
@@ -263,6 +265,7 @@ module.exports.enqueueAllPlaceDetails = async ({
     });
 
     // Special case that works completely differently
+    // TODO: Make it work with scrolling
     if (searchString?.startsWith('all_places_no_search')) {
         await Apify.utils.sleep(10000);
         // dismiss covid warning panel
@@ -283,7 +286,11 @@ module.exports.enqueueAllPlaceDetails = async ({
         return;
     }
 
+    // We already have the results loaded but to get them via XHR, we need to click again
+    // This is not abosolutely necessary but we would need to rewrite and complicate the parser
+    await page.waitForSelector('#searchbox-searchbutton', { timeout: 10000 });
     await page.click('#searchbox-searchbutton');
+
     // In the past, we did input flow with typing the search, it is not necessary and it is slow
     // but maybe it had some anti-blocking effect
     // Leaving this comment here until we test current code well and then we can remove it
@@ -292,6 +299,12 @@ module.exports.enqueueAllPlaceDetails = async ({
     const startZoom = /** @type {number} */ (parseZoomFromUrl(page.url()));
 
     const logBase = `[SEARCH][${searchString}]`;
+
+    // We check if we already processed the response for the newly loaded UI places, if yes, we can continue
+    let placesCountInUI = await getPlacesCountInUI(page);
+    await waiter(() => pageStats.totalFound >= placesCountInUI, { noThrow: true, timeout: 5000 });
+    // Sanity sleep 
+    await sleep(500);
 
     // There can be many states other than loaded results
     const { noOutcomeLoaded, hasNoResults, isBadQuery, isPlaceDetail } = await waitForSearchResults(page);
@@ -310,10 +323,13 @@ module.exports.enqueueAllPlaceDetails = async ({
         return;
     } 
 
-    // If we search for very specific place, it loads it directly
-    // but enqueuing will still process it in separate page
+    // If we search for very specific place, it redirects us to the place page right away
+    // Unofortunately, this page lacks the JSON data as we need it
+    // So we still enqueue it separately
     if (isPlaceDetail) {
         log.warning(`${logBase} Finishing scroll because we loaded a single place page directly - ${request.url}`);
+        // We must wait a bit for the response to be intercepted
+        await waiter(() => pageStats.totalFound > 0, { timeout: 60000, timeoutErrorMeesage: 'Could not enqueue single place in time'})
         return;
     }
 
@@ -324,8 +340,10 @@ module.exports.enqueueAllPlaceDetails = async ({
     for (;;) {
         const logBaseScroll = `${logBase}[SCROLL: ${pageStats.pageNum}]:`
         // Check if we grabbed all results for this search
+        // We also need to check that these were processed already so we don't finish too fast
         const noMoreResults = await page.$('.HlvSq');
         if (noMoreResults) {
+            
             log.info(`${logBase} Finishing search because we reached all ${pageStats.totalFound} results - ${request.url}`);
             return;
         }
@@ -391,9 +409,6 @@ module.exports.enqueueAllPlaceDetails = async ({
             return;
         }
 
-        // We wait between 2 and 3 sec to simulate real scrolling
-        // It seems if we go faster than 2 sec, we sometimes miss some data (not sure why yet)
-        await page.waitForTimeout(2000 + Math.ceil(1000 * Math.random()))
         // We need to have mouse in the left scrolling panel
         await page.mouse.move(10, 300);
         await page.waitForTimeout(100);
@@ -401,5 +416,12 @@ module.exports.enqueueAllPlaceDetails = async ({
         await page.mouse.wheel({ deltaY: 800 });
         // await waitForGoogleMapLoader(page);
         pageStats.pageNum++;
+
+        // We wait between 2 and 3 sec to simulate real scrolling
+        // It seems if we go faster than 2 sec, we sometimes miss some data (not sure why yet)
+        await page.waitForTimeout(2000 + Math.ceil(1000 * Math.random()))
+
+        placesCountInUI =  await getPlacesCountInUI(page);
+        await waiter(() => pageStats.totalFound >= placesCountInUI, { noThrow: true, timeout: 5000 }); 
     }
 };

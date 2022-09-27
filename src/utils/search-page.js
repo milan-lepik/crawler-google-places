@@ -39,3 +39,10 @@ module.exports.searchInputBoxFlow = async (page, searchString) => {
     await sleep(5000);
     await waitForGoogleMapLoader(page);
 }
+
+/** 
+ * @param {Puppeteer.Page} page 
+ */
+ module.exports.getPlacesCountInUI = async (page) => {
+    return page.evaluate(() => $('[role="article"]').length);
+}
